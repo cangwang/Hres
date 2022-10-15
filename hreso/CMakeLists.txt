@@ -29,7 +29,9 @@ add_library( # Sets the name of the library.
         # Provides a relative path to your source file(s).
         src/main/cpp/hresjni.cpp
         src/main/cpp/egl/eglcore.cpp
+        src/main/cpp/transform/imageoptionparams.cpp
         src/main/cpp/transform/hrestransformer.cpp
+        src/main/cpp/transform/imagehrestransformer.cpp
         src/main/cpp/util/shaderutil.cpp
         )
 
@@ -38,6 +40,10 @@ add_library( # Sets the name of the library.
 # default, you only need to specify the name of the public NDK library
 # you want to add. CMake verifies that the library exists before
 # completing its build.
+
+add_library(parson
+        STATIC
+        src/main/cpp/util/parson.c)
 
 find_library( # Sets the name of the path variable.
               log-lib
@@ -59,7 +65,7 @@ target_link_libraries( # Specifies the target library.
 #                       GLESv3
                        GLESv2
                        EGL
-                       jnigraphics
+                       parson
 
                        # Links the target library to the log library
                        # included in the NDK.

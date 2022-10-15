@@ -2,7 +2,7 @@ package com.cangwang.hreso.bean
 
 import org.json.JSONObject
 
-class ImgOptionParams {
+class OptionParams {
     var address = ""
     var scaleRatio = 1f
     var scaleWidth = 0f

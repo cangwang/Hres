@@ -19,7 +19,7 @@ EGLCore::~EGLCore() {
     mContext = EGL_NO_CONTEXT;
 }
 
-void EGLCore::start(ANativeWindow *window) {
+void EGLCore::start() {
     mDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
     GLint majorVersion;
     GLint minorVersion;
@@ -39,15 +39,17 @@ void EGLCore::start(ANativeWindow *window) {
         ELOGE("eglGetConfigAttrib failed: %d",eglGetError());
     }
     ELOGD("eglGetConfigAttrib success");
-    ANativeWindow_setBuffersGeometry(window,0,0,format);
+//    ANativeWindow_setBuffersGeometry(window,0,0,format);
     ELOGD("setBuffersGeometry success");
     //创建On-Screen 渲染区域
-    mSurface = eglCreateWindowSurface(mDisplay,config,window,0);
+//    mSurface = eglCreateWindowSurface(mDisplay,config,window,0);
+    //创建离屏渲染Surface
+    mSurface = eglCreatePbufferSurface(mDisplay, config, 0);
     if (mSurface == nullptr || mSurface == EGL_NO_SURFACE){
-        ELOGE("eglCreateWindowSurface failed: %d",eglGetError());
+        ELOGE("eglCreatePbufferSurface failed: %d",eglGetError());
         return;
     }
-    ELOGD("eglCreateWindowSurface success");
+    ELOGD("eglCreatePbufferSurface success");
     if (eglMakeCurrent(mDisplay, mSurface, mSurface, mContext) == false) {
         ELOGE("make current error:${Integer.toHexString(egl?.eglGetError() ?: 0)}");
     }

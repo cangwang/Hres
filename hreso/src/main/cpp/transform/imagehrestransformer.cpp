@@ -3,3 +3,19 @@
 //
 
 #include "imagehrestransformer.h"
+
+ImageHresTransformer::ImageHresTransformer() {
+
+}
+
+ImageHresTransformer::~ImageHresTransformer() {
+
+}
+
+void ImageHresTransformer::transformOption(IOptions *option) {
+
+}
+
+void ImageHresTransformer::release() {
+
+}

@@ -5,9 +5,14 @@
 #ifndef HRES_IMAGEHRESTRANSFORMER_H
 #define HRES_IMAGEHRESTRANSFORMER_H
 
+#include <transform/ioptions.h>
 
-class ImageHresTransformer : public  {
-
+class ImageHresTransformer {
+public:
+    ImageHresTransformer();
+    ~ImageHresTransformer();
+    void transformOption(IOptions* option);
+    void release();
 };
 
 
