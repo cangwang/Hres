@@ -32,7 +32,10 @@ add_library( # Sets the name of the library.
         src/main/cpp/transform/imageoptionparams.cpp
         src/main/cpp/transform/hrestransformer.cpp
         src/main/cpp/transform/imagehrestransformer.cpp
+        src/main/cpp/transform/optionparser.cpp
+        src/main/cpp/filter/bilinearfilter.cpp
         src/main/cpp/util/shaderutil.cpp
+        src/main/cpp/util/glfloatarray.cpp
         )
 
 # Searches for a specified prebuilt library and stores the path as a

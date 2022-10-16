@@ -7,6 +7,10 @@
 
 #include <transform/ioptions.h>
 
+#define LOG_TAG "ImageOptionParams"
+#define ELOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
+#define ELOGV(...) __android_log_print(ANDROID_LOG_VERBOSE, LOG_TAG, __VA_ARGS__)
+
 using namespace std;
 class ImageOptionParams : public IOptions {
 public:
@@ -20,11 +24,16 @@ public:
 
     float getScaleRatio() override;
 
-    float getScaleWidth() override;
+    int getScaleWidth() override;
 
-    float getScaleHeight() override;
+    int getScaleHeight() override;
 
     bool getAsync() override;
+
+    string getFilterType() override;
+
+    void setOptions(string options) override;
+
 };
 
 

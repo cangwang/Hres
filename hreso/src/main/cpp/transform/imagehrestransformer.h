@@ -6,14 +6,20 @@
 #define HRES_IMAGEHRESTRANSFORMER_H
 
 #include <transform/ioptions.h>
+#include <list>
+#include <filter/ifilter.h>
 
+
+using namespace std;
 class ImageHresTransformer {
 public:
     ImageHresTransformer();
     ~ImageHresTransformer();
-    void transformOption(IOptions* option);
+    void transformOption(IOptions* options);
     void release();
-};
 
+private:
+    list<IFilter*> filterList;
+};
 
 #endif //HRES_IMAGEHRESTRANSFORMER_H
