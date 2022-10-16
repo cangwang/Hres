@@ -27,7 +27,8 @@ void ImageOptionParams::setOptions(string options) {
         scaleRatio = (float)json_object_get_number(jsonObject, "scaleRatio");
         scaleWidth = (int)json_object_get_number(jsonObject, "scaleWidth");
         scaleHeight = (int)json_object_get_number(jsonObject, "scaleHeight");
-        async = (int)json_object_get_boolean(jsonObject, "async");
+        front = json_object_get_boolean(jsonObject, "front");
+        async = json_object_get_boolean(jsonObject, "async");
     }
 }
 
@@ -65,4 +66,8 @@ int ImageOptionParams::getScaleHeight() {
 
 bool ImageOptionParams::getAsync() {
     return async;
+}
+
+bool ImageOptionParams::getFront() {
+    return front;
 }

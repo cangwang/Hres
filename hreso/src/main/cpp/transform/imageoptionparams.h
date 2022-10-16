@@ -32,6 +32,8 @@ public:
 
     string getFilterType() override;
 
+    bool getFront() override;
+
     void setOptions(string options) override;
 
 };

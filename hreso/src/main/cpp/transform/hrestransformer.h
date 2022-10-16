@@ -11,6 +11,7 @@
 #include <transform/ioptions.h>
 #include <transform/imagehrestransformer.h>
 #include <egl/eglcore.h>
+#include <transform/optionparser.h>
 
 #define LOG_TAG "HresTransformer"
 #define ELOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
@@ -27,7 +28,8 @@ public:
 
 private:
     EGLCore* eglCore;
-    list<IOptions*> optionsList;
+    OptionParser* optionParser;
+    queue<IOptions*> optionsList;
     ImageHresTransformer* imageHresTransformer;
     bool removeOptions(string address);
 };

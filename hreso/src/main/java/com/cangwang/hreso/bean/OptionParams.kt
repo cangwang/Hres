@@ -11,6 +11,7 @@ class OptionParams {
     var scaleRatio = 1f
     var scaleWidth = 0f
     var scaleHeight = 0f
+    var front = false //是否插入队头
     var async = false
 
     fun toJson(): String {
@@ -23,6 +24,7 @@ class OptionParams {
         json.put("scaleRatio", scaleRatio)
         json.put("scaleWidth", scaleWidth)
         json.put("scaleHeight", scaleHeight)
+        json.put("front", front)
         json.put("async", async)
         return json.toString()
     }

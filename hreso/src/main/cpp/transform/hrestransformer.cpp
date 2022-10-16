@@ -4,16 +4,30 @@
 
 #include "hrestransformer.h"
 
-HresTransformer::HresTransformer():eglCore(new EGLCore()), imageHresTransformer(nullptr) {
+HresTransformer::HresTransformer():eglCore(new EGLCore()),
+                                    imageHresTransformer(nullptr),
+                                    optionParser(nullptr) {
     eglCore->start();
+    optionsList.clear();
 }
 
 HresTransformer::~HresTransformer() {
     optionsList.clear();
+    if (optionParser != nullptr) {
+        optionParser = nullptr;
+    }
 }
 
 void HresTransformer::addOption(string options) {
-
+    if (optionParser == nullptr) {
+        optionParser = new OptionParser();
+    }
+    IOptions* option = optionParser->parseOptions(options);
+    if (option->getFront()) {
+        optionsList.push_front(option)
+    } else {
+        optionsList.push_back(option);
+    }
 }
 
 void HresTransformer::transform() {

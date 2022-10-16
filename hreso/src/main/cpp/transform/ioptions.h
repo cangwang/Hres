@@ -18,6 +18,7 @@ public:
     virtual float getScaleRatio() = 0;
     virtual int getScaleWidth() = 0;
     virtual int getScaleHeight() = 0;
+    virtual bool getFront() = 0;
     virtual bool getAsync() = 0;
 
 protected:
@@ -29,6 +30,7 @@ protected:
     float scaleRatio;
     int scaleWidth;
     int scaleHeight;
+    bool front;  // 是否插入队头
     bool async;
 };
 
