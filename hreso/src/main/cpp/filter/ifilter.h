@@ -4,9 +4,11 @@
 
 #ifndef HRES_IFILTER_H
 #define HRES_IFILTER_H
+
 #include <GLES2/gl2.h>
 #include <transform/ioptions.h>
 #include <util/shaderutil.h>
+#include <util/glfloatarray.h>
 
 class IFilter {
 public:

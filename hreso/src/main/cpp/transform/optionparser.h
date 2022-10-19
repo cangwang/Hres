@@ -6,6 +6,7 @@
 #define HRES_OPTIONPARSER_H
 
 #include <transform/ioptions.h>
+#include <android/log.h>
 #include <string>
 
 #define LOG_TAG "OptionParser"

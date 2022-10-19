@@ -1,19 +1,14 @@
 //
-// Created by asus on 2022/10/16.
+// Created by asus on 2022/10/19.
 //
 
-#ifndef HRES_BILINEARFILTER_H
-#define HRES_BILINEARFILTER_H
+#ifndef HRES_SIMPLEFILTER_H
+#define HRES_SIMPLEFILTER_H
 
 #include <filter/ifilter.h>
-#include <transform/hrestransformer.h>
 
-class BilinearFilter : public IFilter {
+class SimpleFilter : public IFilter {
 public:
-    BilinearFilter();
-
-    ~BilinearFilter();
-
     void initFilter() override;
 
     void renderFrame() override;
@@ -24,12 +19,13 @@ public:
 
     void setOptions(IOptions *config) override;
 
+    void updateViewPort(int width, int height) override;
+
     GLuint getExternalTexture() override;
 
     void releaseTexture() override;
 
     void swapBuffers() override;
-
 private:
     GlFloatArray *vertexArray;
     GlFloatArray *rgbaArray;
@@ -46,7 +42,8 @@ private:
 
     int surfaceWidth = 0;
     int surfaceHeight = 0;
+
 };
 
 
-#endif //HRES_BILINEARFILTER_H
+#endif //HRES_SIMPLEFILTER_H

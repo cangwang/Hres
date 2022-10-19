@@ -24,7 +24,7 @@ void HresTransformer::addOption(string options) {
     }
     IOptions* option = optionParser->parseOptions(options);
     if (option->getFront()) {
-        optionsList.push_front(option)
+        optionsList.push_front(option);
     } else {
         optionsList.push_back(option);
     }
@@ -35,6 +35,16 @@ void HresTransformer::transform() {
         eglCore = new EGLCore();
         eglCore->start();
     }
+    if (!optionsList.empty()) {
+        auto options = optionsList.front();
+        optionsList.pop_front();
+        if (options->getType() == 1) {
+            if (imageHresTransformer == nullptr) {
+                imageHresTransformer = new ImageHresTransformer();
+            }
+            imageHresTransformer->transformOption(options);
+        }
+    }
 }
 
 void HresTransformer::release() {
@@ -42,14 +52,19 @@ void HresTransformer::release() {
         eglCore->release();
         eglCore = nullptr;
     }
+    if (imageHresTransformer != nullptr) {
+        imageHresTransformer->release();
+        imageHresTransformer = nullptr;
+    }
 }
 
 bool HresTransformer::removeOptions(string address) {
-    for(IOptions* options: optionsList) {
-        if (options->getAddress() == address) {
-            optionsList.remove(options);
+    for (auto i = optionsList.begin(); i < optionsList.end(); i++) {
+        if (i.operator*()->getAddress() == address) {
+            optionsList.erase(i);
             return true;
         }
     }
+
     return false;
 }

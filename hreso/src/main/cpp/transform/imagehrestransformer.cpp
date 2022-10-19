@@ -9,13 +9,13 @@ ImageHresTransformer::ImageHresTransformer() {
 }
 
 ImageHresTransformer::~ImageHresTransformer() {
-
+    filterList.clear();
 }
 
 void ImageHresTransformer::transformOption(IOptions *option) {
-
+//    filterList.
 }
 
 void ImageHresTransformer::release() {
-
+    filterList.clear();
 }

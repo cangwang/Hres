@@ -7,7 +7,7 @@
 
 #include <android/log.h>
 #include <string>
-#include <list>
+#include <deque>
 #include <transform/ioptions.h>
 #include <transform/imagehrestransformer.h>
 #include <egl/eglcore.h>
@@ -29,7 +29,7 @@ public:
 private:
     EGLCore* eglCore;
     OptionParser* optionParser;
-    queue<IOptions*> optionsList;
+    deque<IOptions*> optionsList;
     ImageHresTransformer* imageHresTransformer;
     bool removeOptions(string address);
 };
