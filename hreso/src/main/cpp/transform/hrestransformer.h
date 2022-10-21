@@ -27,10 +27,10 @@ public:
     void release();
 
 private:
-    EGLCore* eglCore;
-    OptionParser* optionParser;
-    deque<IOptions*> optionsList;
-    ImageHresTransformer* imageHresTransformer;
+    shared_ptr<EGLCore> eglCore;
+    shared_ptr<OptionParser> optionParser;
+    shared_ptr<deque<IOptions*>> optionsList;
+    shared_ptr<ImageHresTransformer> imageHresTransformer;
     bool removeOptions(string address);
 };
 

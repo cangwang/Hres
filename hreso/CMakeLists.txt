@@ -37,6 +37,7 @@ add_library( # Sets the name of the library.
         src/main/cpp/filter/simplefilter.cpp
         src/main/cpp/util/shaderutil.cpp
         src/main/cpp/util/glfloatarray.cpp
+        src/main/cpp/util/loadtextureutil.cpp
         )
 
 # Searches for a specified prebuilt library and stores the path as a
@@ -66,8 +67,7 @@ find_library( # Sets the name of the path variable.
 target_link_libraries( # Specifies the target library.
                        hres
                        android
-#                       GLESv3
-                       GLESv2
+                       GLESv3
                        EGL
                        parson
 

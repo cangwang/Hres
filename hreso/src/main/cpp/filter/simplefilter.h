@@ -27,8 +27,8 @@ public:
 
     void swapBuffers() override;
 private:
-    GlFloatArray *vertexArray;
-    GlFloatArray *rgbaArray;
+    unique_ptr<GlFloatArray> vertexArray;
+    unique_ptr<GlFloatArray> *rgbaArray;
 
     GLuint shaderProgram;
     //shader
@@ -43,6 +43,8 @@ private:
     int surfaceWidth = 0;
     int surfaceHeight = 0;
 
+    string VERTEX_SHADER;
+    string FRAGMENT_SHADER;
 };
 
 

@@ -59,17 +59,7 @@ void EGLCore::start() {
 EGLConfig EGLCore::chooseConfig() {
     int configsCount = 0;
     EGLConfig configs;
-//    EGLint* attributes = getAttributes();
-    EGLint attributes[] =
-            {EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT, //指定渲染api类别
-             EGL_RED_SIZE, 8,
-             EGL_GREEN_SIZE, 8,
-             EGL_BLUE_SIZE, 8,
-             EGL_ALPHA_SIZE, 8,
-             EGL_DEPTH_SIZE, 0,
-             EGL_STENCIL_SIZE, 0,
-             EGL_NONE
-            };
+    EGLint* attributes = getAttributes();
     int configSize = 1;
     if (eglChooseConfig(mDisplay, attributes, &configs, configSize, &configsCount) == true) {
         return configs;
@@ -81,7 +71,7 @@ EGLConfig EGLCore::chooseConfig() {
 
 EGLint* EGLCore::getAttributes() {
     EGLint attribList[] =
-            {EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT, //指定渲染api类别
+            {EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT_KHR, //指定渲染api类别
              EGL_RED_SIZE, 8,
              EGL_GREEN_SIZE, 8,
              EGL_BLUE_SIZE, 8,
@@ -96,7 +86,7 @@ EGLint* EGLCore::getAttributes() {
 EGLContext EGLCore::createContext(EGLDisplay eglDisplay, EGLConfig eglConfig) {
     //创建渲染上下文
     //只使用opengles2
-    GLint contextAttrib[] = {EGL_CONTEXT_CLIENT_VERSION, 2 ,
+    GLint contextAttrib[] = {EGL_CONTEXT_CLIENT_VERSION, 3 ,
                              EGL_NONE};
     // EGL_NO_CONTEXT表示不向其它的context共享资源
     mContext = eglCreateContext(eglDisplay, eglConfig, EGL_NO_CONTEXT, contextAttrib);
@@ -130,7 +120,7 @@ GLboolean EGLCore::buildContext(ANativeWindow *window) {
             EGL_RED_SIZE,5, //指定RGB中的R大小（bits）
             EGL_GREEN_SIZE,6, //指定G大小
             EGL_BLUE_SIZE,5,  //指定B大小
-//            EGL_RENDERABLE_TYPE,EGL_OPENGL_ES3_BIT_KHR, //渲染类型，为相机扩展类型
+            EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT_KHR, //渲染类型，为相机扩展类型
             EGL_SURFACE_TYPE,EGL_WINDOW_BIT,  //绘图类型，
             EGL_NONE
     };

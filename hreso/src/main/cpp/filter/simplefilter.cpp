@@ -5,23 +5,25 @@
 #include "simplefilter.h"
 
 void SimpleFilter::initFilter() {
-    char VERTEX_SHADER[] = "attribute vec4 vPosition;\n"
-                           "attribute vec4 vTexCoordinate;\n"
-                           "varying vec2 v_TexCoordinate;\n"
-                           "\n"
-                           "void main() {\n"
-                           "    v_TexCoordinate = vec2(vTexCoordinate.x, vTexCoordinate.y);\n"
-                           "    gl_Position = vPosition;\n"
-                           "}";
+    VERTEX_SHADER = SHADER_STR(
+            attribute vec4 vPosition;
+            attribute vec4 vTexCoordinate;
+            varying vec2 v_TexCoordinate;
+            void main() {
+                v_TexCoordinate = vec2(vTexCoordinate.x, vTexCoordinate.y);
+                gl_Position = vPosition;
+            }
+    );
 
-    char FRAGMENT_SHADER[] = "precision mediump float;\n"
-                             "uniform sampler2D uTexture;\n"
-                             "varying vec2 v_TexCoordinate;\n"
-                             "\n"
-                             "void main () {\n"
-                             "    gl_FragColor = texture2D(uTexture, v_TexCoordinate);\n"
-                             //                             "    gl_FragColor = vec4(1.0,0.2,0.5,1.0);\n"
-                             "}";
+    FRAGMENT_SHADER = SHADER_STR(
+            precision mediump float;
+            uniform sampler2D uTexture;
+            varying vec2 v_TexCoordinate;
+            void main () {
+                gl_FragColor = texture2D(uTexture, v_TexCoordinate);
+//                gl_FragColor = vec4(1.0,0.2,0.5,1.0);
+            }
+    );
     shaderProgram = ShaderUtil::createProgram(VERTEX_SHADER, FRAGMENT_SHADER);
     uTextureLocation = glGetUniformLocation(shaderProgram, "uTexture");
     positionLocation = glGetAttribLocation(shaderProgram, "vPosition");
@@ -37,7 +39,8 @@ void SimpleFilter::clearFrame() {
 }
 
 void SimpleFilter::destroyFilter() {
-
+    VERTEX_SHADER.clear();
+    FRAGMENT_SHADER.clear();
 }
 
 void SimpleFilter::setOptions(IOptions *config) {

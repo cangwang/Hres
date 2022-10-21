@@ -5,14 +5,13 @@
 #include "hrestransformer.h"
 
 HresTransformer::HresTransformer():eglCore(new EGLCore()),
-                                    imageHresTransformer(nullptr),
                                     optionParser(nullptr) {
     eglCore->start();
-    optionsList.clear();
+    optionsList = make_shared<deque<IOptions*>>();
 }
 
 HresTransformer::~HresTransformer() {
-    optionsList.clear();
+    optionsList->clear();
     if (optionParser != nullptr) {
         optionParser = nullptr;
     }
@@ -20,27 +19,27 @@ HresTransformer::~HresTransformer() {
 
 void HresTransformer::addOption(string options) {
     if (optionParser == nullptr) {
-        optionParser = new OptionParser();
+        optionParser = shared_ptr<OptionParser>();
     }
     IOptions* option = optionParser->parseOptions(options);
     if (option->getFront()) {
-        optionsList.push_front(option);
+        optionsList->push_front(option);
     } else {
-        optionsList.push_back(option);
+        optionsList->push_back(option);
     }
 }
 
 void HresTransformer::transform() {
     if (eglCore == nullptr) {
-        eglCore = new EGLCore();
+        eglCore = make_shared<EGLCore>();
         eglCore->start();
     }
-    if (!optionsList.empty()) {
-        auto options = optionsList.front();
-        optionsList.pop_front();
-        if (options->getType() == 1) {
+    if (!optionsList->empty()) {
+        auto options = optionsList->front();
+        optionsList->pop_front();
+        if (options->getType() == 1) {  //类型为图片
             if (imageHresTransformer == nullptr) {
-                imageHresTransformer = new ImageHresTransformer();
+                imageHresTransformer = make_shared<ImageHresTransformer>();
             }
             imageHresTransformer->transformOption(options);
         }
@@ -48,23 +47,21 @@ void HresTransformer::transform() {
 }
 
 void HresTransformer::release() {
+    optionsList->clear();
     if (eglCore) {
         eglCore->release();
-        eglCore = nullptr;
     }
     if (imageHresTransformer != nullptr) {
         imageHresTransformer->release();
-        imageHresTransformer = nullptr;
     }
 }
 
 bool HresTransformer::removeOptions(string address) {
-    for (auto i = optionsList.begin(); i < optionsList.end(); i++) {
+    for (auto i = optionsList->begin(); i < optionsList->end(); i++) {
         if (i.operator*()->getAddress() == address) {
-            optionsList.erase(i);
+            optionsList->erase(i);
             return true;
         }
     }
-
     return false;
 }

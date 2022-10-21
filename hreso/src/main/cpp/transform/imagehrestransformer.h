@@ -8,6 +8,7 @@
 #include <transform/ioptions.h>
 #include <list>
 #include <filter/ifilter.h>
+#include <filter/simplefilter.h>
 
 
 using namespace std;
@@ -16,10 +17,12 @@ public:
     ImageHresTransformer();
     ~ImageHresTransformer();
     void transformOption(IOptions* options);
+    void transform();
     void release();
 
 private:
     list<IFilter*> filterList;
+    shared_ptr<IOptions> option;
 };
 
 #endif //HRES_IMAGEHRESTRANSFORMER_H
