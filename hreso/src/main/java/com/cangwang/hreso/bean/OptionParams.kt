@@ -5,6 +5,7 @@ import org.json.JSONObject
 class OptionParams {
     var name = ""
     var address = ""
+    var saveAddress = ""
     var filterType = "simple"  //滤镜名称
     var type = 1  // 1是图片 2是视频
     var scaleType = 1  //1 使用scaleRatio, 2使用固定宽高
@@ -18,6 +19,7 @@ class OptionParams {
         val json = JSONObject()
         json.put("name", name)
         json.put("address", address)
+        json.put("saveAddress", saveAddress)
         json.put("type", type)
         json.put("filterType", filterType)
         json.put("scaleType", scaleType)

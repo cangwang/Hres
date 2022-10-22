@@ -35,6 +35,7 @@ add_library( # Sets the name of the library.
         src/main/cpp/transform/optionparser.cpp
         src/main/cpp/filter/bilinearfilter.cpp
         src/main/cpp/filter/simplefilter.cpp
+        src/main/cpp/filter/filtercontroller.cpp
         src/main/cpp/util/shaderutil.cpp
         src/main/cpp/util/glfloatarray.cpp
         src/main/cpp/util/loadtextureutil.cpp

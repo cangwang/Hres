@@ -7,8 +7,7 @@
 
 #include <transform/ioptions.h>
 #include <list>
-#include <filter/ifilter.h>
-#include <filter/simplefilter.h>
+#include <filter/filtercontroller.h>
 
 
 using namespace std;
@@ -21,7 +20,8 @@ public:
     void release();
 
 private:
-    list<IFilter*> filterList;
+    shared_ptr<FilterController> filterController;
+
     shared_ptr<IOptions> option;
 };
 

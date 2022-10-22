@@ -7,6 +7,10 @@
 
 #include <filter/ifilter.h>
 
+#define LOG_TAG "SimpleFilter"
+#define HLOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
+#define HLOGV(...) __android_log_print(ANDROID_LOG_VERBOSE, LOG_TAG, __VA_ARGS__)
+
 class SimpleFilter : public IFilter {
 public:
     void initFilter() override;
@@ -28,7 +32,7 @@ public:
     void swapBuffers() override;
 private:
     unique_ptr<GlFloatArray> vertexArray;
-    unique_ptr<GlFloatArray> *rgbaArray;
+    unique_ptr<GlFloatArray> rgbaArray;
 
     GLuint shaderProgram;
     //shader

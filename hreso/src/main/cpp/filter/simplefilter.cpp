@@ -31,7 +31,26 @@ void SimpleFilter::initFilter() {
 }
 
 void SimpleFilter::renderFrame() {
+    if (textureId != -1) {
+        glUseProgram(shaderProgram);
+        vertexArray->setVertexAttribPointer(positionLocation);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, textureId);
+        //加载纹理
+        glUniform1i(uTextureLocation, 0);
+        rgbaArray->setVertexAttribPointer(textureLocation);
 
+        glEnable(GL_BLEND);
+        //基于alpha通道的半透明混合函数
+        //void glBlendFuncSeparate(GLenum srcRGB,
+        //     GLenum dstRGB,
+        //     GLenum srcAlpha,
+        //     GLenum dstAlpha);
+        glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        //关闭混合
+        glDisable(GL_BLEND);
+    }
 }
 
 void SimpleFilter::clearFrame() {

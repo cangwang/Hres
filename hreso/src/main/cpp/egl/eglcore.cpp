@@ -2,7 +2,7 @@
 #include "eglcore.h"
 
 #define LOG_TAG "EGLCore"
-#define ELOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
+#define HLOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
 #define ELOGD(...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
 
 /**
@@ -25,7 +25,7 @@ void EGLCore::start() {
     GLint minorVersion;
     //获取支持最低和最高版本
     if (!eglInitialize(mDisplay,&majorVersion,&minorVersion)){
-        ELOGE("eglInitialize failed: %d",eglGetError());
+        HLOGE("eglInitialize failed: %d",eglGetError());
         return;
     }
     ELOGD("eglInitialize success");
@@ -36,7 +36,7 @@ void EGLCore::start() {
     ELOGD("createContext success");
     EGLint format = 0;
     if (!eglGetConfigAttrib(mDisplay,config,EGL_NATIVE_VISUAL_ID,&format)){
-        ELOGE("eglGetConfigAttrib failed: %d",eglGetError());
+        HLOGE("eglGetConfigAttrib failed: %d",eglGetError());
     }
     ELOGD("eglGetConfigAttrib success");
 //    ANativeWindow_setBuffersGeometry(window,0,0,format);
@@ -46,12 +46,12 @@ void EGLCore::start() {
     //创建离屏渲染Surface
     mSurface = eglCreatePbufferSurface(mDisplay, config, 0);
     if (mSurface == nullptr || mSurface == EGL_NO_SURFACE){
-        ELOGE("eglCreatePbufferSurface failed: %d",eglGetError());
+        HLOGE("eglCreatePbufferSurface failed: %d",eglGetError());
         return;
     }
     ELOGD("eglCreatePbufferSurface success");
     if (eglMakeCurrent(mDisplay, mSurface, mSurface, mContext) == false) {
-        ELOGE("make current error:${Integer.toHexString(egl?.eglGetError() ?: 0)}");
+        HLOGE("make current error:${Integer.toHexString(egl?.eglGetError() ?: 0)}");
     }
     ELOGD("eglMakeCurrent success");
 }
@@ -64,7 +64,7 @@ EGLConfig EGLCore::chooseConfig() {
     if (eglChooseConfig(mDisplay, attributes, &configs, configSize, &configsCount) == true) {
         return configs;
     } else {
-        ELOGE("eglChooseConfig failed: %d",eglGetError());
+        HLOGE("eglChooseConfig failed: %d",eglGetError());
     }
     return nullptr;
 }
@@ -91,7 +91,7 @@ EGLContext EGLCore::createContext(EGLDisplay eglDisplay, EGLConfig eglConfig) {
     // EGL_NO_CONTEXT表示不向其它的context共享资源
     mContext = eglCreateContext(eglDisplay, eglConfig, EGL_NO_CONTEXT, contextAttrib);
     if (mContext == EGL_NO_CONTEXT){
-        ELOGE("eglCreateContext failed: %d",eglGetError());
+        HLOGE("eglCreateContext failed: %d",eglGetError());
         return GL_FALSE;
     }
     return mContext;
@@ -101,7 +101,7 @@ GLboolean EGLCore::buildContext(ANativeWindow *window) {
     //与本地窗口通信
     mDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
     if (mDisplay == EGL_NO_DISPLAY){
-        ELOGE("eglGetDisplay failed: %d",eglGetError());
+        HLOGE("eglGetDisplay failed: %d",eglGetError());
         return GL_FALSE;
     }
 
@@ -109,7 +109,7 @@ GLboolean EGLCore::buildContext(ANativeWindow *window) {
     GLint minorVersion;
     //获取支持最低和最高版本
     if (!eglInitialize(mDisplay,&majorVersion,&minorVersion)){
-        ELOGE("eglInitialize failed: %d",eglGetError());
+        HLOGE("eglInitialize failed: %d",eglGetError());
         return GL_FALSE;
     }
 
@@ -127,13 +127,13 @@ GLboolean EGLCore::buildContext(ANativeWindow *window) {
 
     //让EGL推荐匹配的EGLConfig
     if(!eglChooseConfig(mDisplay,attribList,&config,1,&numConfigs)){
-        ELOGE("eglChooseConfig failed: %d",eglGetError());
+        HLOGE("eglChooseConfig failed: %d",eglGetError());
         return GL_FALSE;
     }
 
     //找不到匹配的
     if (numConfigs <1){
-        ELOGE("eglChooseConfig get config number less than one");
+        HLOGE("eglChooseConfig get config number less than one");
         return GL_FALSE;
     }
 
@@ -143,13 +143,13 @@ GLboolean EGLCore::buildContext(ANativeWindow *window) {
     // EGL_NO_CONTEXT表示不向其它的context共享资源
     mContext = eglCreateContext(mDisplay,config,EGL_NO_CONTEXT,contextAttrib);
     if (mContext == EGL_NO_CONTEXT){
-        ELOGE("eglCreateContext failed: %d",eglGetError());
+        HLOGE("eglCreateContext failed: %d",eglGetError());
         return GL_FALSE;
     }
 
     EGLint format = 0;
     if (!eglGetConfigAttrib(mDisplay,config,EGL_NATIVE_VISUAL_ID,&format)){
-        ELOGE("eglGetConfigAttrib failed: %d",eglGetError());
+        HLOGE("eglGetConfigAttrib failed: %d",eglGetError());
         return GL_FALSE;
     }
     ANativeWindow_setBuffersGeometry(window,0,0,format);
@@ -157,13 +157,13 @@ GLboolean EGLCore::buildContext(ANativeWindow *window) {
     //创建On-Screen 渲染区域
     mSurface = eglCreateWindowSurface(mDisplay,config,window,0);
     if (mSurface == EGL_NO_SURFACE){
-        ELOGE("eglCreateWindowSurface failed: %d",eglGetError());
+        HLOGE("eglCreateWindowSurface failed: %d",eglGetError());
         return GL_FALSE;
     }
 
     //把EGLContext和EGLSurface关联起来，单缓冲只使用了一个surface
     if (!eglMakeCurrent(mDisplay,mSurface,mSurface,mContext)){
-        ELOGE("eglMakeCurrent failed: %d",eglGetError());
+        HLOGE("eglMakeCurrent failed: %d",eglGetError());
         return GL_FALSE;
     }
 

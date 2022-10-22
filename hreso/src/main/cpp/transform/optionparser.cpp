@@ -7,7 +7,7 @@
 
 IOptions* OptionParser::parseOptions(string options) {
     if (options.empty()) {
-        ELOGE("options is empty");
+        HLOGE("options is empty");
         return nullptr;
     }
 
@@ -28,7 +28,7 @@ IOptions* OptionParser::parseOptions(string options) {
         option->setOptions(options);
         return option;
     } else {
-        ELOGE("not json object");
+        HLOGE("not json object");
     }
     return nullptr;
 }

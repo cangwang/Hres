@@ -4,30 +4,26 @@
 
 #include "imagehrestransformer.h"
 
-ImageHresTransformer::ImageHresTransformer() {
+ImageHresTransformer::ImageHresTransformer(): filterController(make_shared<FilterController>()) {
 
 }
 
 ImageHresTransformer::~ImageHresTransformer() {
-    filterList.clear();
+
 }
 
 void ImageHresTransformer::transformOption(IOptions *option) {
-    if (this->option.get() == nullptr
-        || (this->option.get() != nullptr && this->option->getName() != option->getName())) {  //滤镜模式不一样
-        if (option->getName() == "simple") {
-            filterList.push_front(new SimpleFilter());
-        }
+    if (filterController != nullptr) {
+        filterController->transformFilter(option);
     }
-
-    this->option = shared_ptr<IOptions>(option);
-
 }
 
 void ImageHresTransformer::transform() {
-
+    if (filterController != nullptr) {
+        filterController->render();
+    }
 }
 
 void ImageHresTransformer::release() {
-    filterList.clear();
+    filterController->release();
 }

@@ -14,6 +14,7 @@ public:
     virtual int getType() = 0;  // 1是图片 2是视频
     virtual string getFilterType() = 0;  // 滤镜类型
     virtual string getAddress() = 0;
+    virtual string getSaveAddress() = 0;
     virtual int getScaleType() = 0; //1 使用scaleRatio, 2使用固定宽高
     virtual float getScaleRatio() = 0;
     virtual int getScaleWidth() = 0;
@@ -26,6 +27,7 @@ protected:
     int type;
     string filterType;
     string address;
+    string saveAddress;
     int scaleType;
     float scaleRatio;
     int scaleWidth;

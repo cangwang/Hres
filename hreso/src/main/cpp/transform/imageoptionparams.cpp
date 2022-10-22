@@ -23,6 +23,7 @@ void ImageOptionParams::setOptions(string options) {
         name = json_object_get_string(jsonObject, "name");
         filterType = json_object_get_string(jsonObject, "filterType");
         address = json_object_get_string(jsonObject, "address");
+        saveAddress = json_object_get_string(jsonObject, "saveAddress");
         scaleType = (int)json_object_get_number(jsonObject, "type");
         scaleRatio = (float)json_object_get_number(jsonObject, "scaleRatio");
         scaleWidth = (int)json_object_get_number(jsonObject, "scaleWidth");
@@ -70,4 +71,8 @@ bool ImageOptionParams::getAsync() {
 
 bool ImageOptionParams::getFront() {
     return front;
+}
+
+string ImageOptionParams::getSaveAddress() {
+    return saveAddress;
 }

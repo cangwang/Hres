@@ -14,8 +14,8 @@
 #include <transform/optionparser.h>
 
 #define LOG_TAG "HresTransformer"
-#define ELOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
-#define ELOGV(...) __android_log_print(ANDROID_LOG_VERBOSE, LOG_TAG, __VA_ARGS__)
+#define HLOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
+#define HLOGV(...) __android_log_print(ANDROID_LOG_VERBOSE, LOG_TAG, __VA_ARGS__)
 
 using namespace std;
 class HresTransformer {
@@ -27,7 +27,6 @@ public:
     void release();
 
 private:
-    shared_ptr<EGLCore> eglCore;
     shared_ptr<OptionParser> optionParser;
     shared_ptr<deque<IOptions*>> optionsList;
     shared_ptr<ImageHresTransformer> imageHresTransformer;

@@ -4,9 +4,7 @@
 
 #include "hrestransformer.h"
 
-HresTransformer::HresTransformer():eglCore(new EGLCore()),
-                                    optionParser(nullptr) {
-    eglCore->start();
+HresTransformer::HresTransformer(): optionParser(nullptr) {
     optionsList = make_shared<deque<IOptions*>>();
 }
 
@@ -30,10 +28,6 @@ void HresTransformer::addOption(string options) {
 }
 
 void HresTransformer::transform() {
-    if (eglCore == nullptr) {
-        eglCore = make_shared<EGLCore>();
-        eglCore->start();
-    }
     if (!optionsList->empty()) {
         auto options = optionsList->front();
         optionsList->pop_front();
@@ -48,9 +42,6 @@ void HresTransformer::transform() {
 
 void HresTransformer::release() {
     optionsList->clear();
-    if (eglCore) {
-        eglCore->release();
-    }
     if (imageHresTransformer != nullptr) {
         imageHresTransformer->release();
     }
