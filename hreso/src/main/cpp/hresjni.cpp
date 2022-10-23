@@ -7,6 +7,8 @@
 #include <android/bitmap.h>
 #include <android/native_window_jni.h>
 #include <transform/hrestransformer.h>
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include <util/stb_image_write.h>
 
 #define LOG_TAG "HRESJNI"
 #define HLOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)

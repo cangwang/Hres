@@ -10,6 +10,8 @@
 #include <filter/simplefilter.h>
 #include <list>
 #include <egl/eglcore.h>
+#include <util/stb_image_write.h>
+
 
 #define LOG_TAG "FilterController"
 #define HLOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
@@ -29,6 +31,18 @@ private:
     IOptions* option;
     list<IFilter*> filterList;
     string filterName;
+    GLuint pixelBuffer;
+    unsigned char* saveImgData;
+    long imgSize;
+    int imgWidth = -1;
+    int imgHeight = -1;
+    int scaleImgWidth = -1;
+    int scaleImgHeight = -1;
+
+    void initPixelBuffer();
+    void drawPixelBuffer();
+    void destroyPixelBuffers();
+    bool saveImg(string saveFileAddress,unsigned char* data,int width,int height,int type);
 };
 
 
