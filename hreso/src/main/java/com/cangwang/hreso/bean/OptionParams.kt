@@ -13,7 +13,7 @@ class OptionParams {
     var scaleWidth = 0f
     var scaleHeight = 0f
     var front = false //是否插入队头
-    var async = false
+    var async = false //是否同步转换
 
     fun toJson(): String {
         val json = JSONObject()
@@ -29,5 +29,20 @@ class OptionParams {
         json.put("front", front)
         json.put("async", async)
         return json.toString()
+    }
+
+    fun toParams(option: String) {
+        val json = JSONObject(option)
+        name = json.optString("name")
+        address = json.optString("address")
+        saveAddress = json.optString("saveAddress")
+        filterType = json.optString("filterType")
+        type = json.optInt("type")
+        scaleType = json.optInt("scaleType")
+        scaleRatio = json.optDouble("scaleRatio").toFloat()
+        scaleWidth = json.optDouble("scaleRatio").toFloat()
+        scaleHeight = json.optDouble("scaleHeight").toFloat()
+        front = json.optBoolean("front")
+        async = json.optBoolean("async")
     }
 }

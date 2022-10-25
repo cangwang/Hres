@@ -33,12 +33,15 @@ add_library( # Sets the name of the library.
         src/main/cpp/transform/hrestransformer.cpp
         src/main/cpp/transform/imagehrestransformer.cpp
         src/main/cpp/transform/optionparser.cpp
+        src/main/cpp/transform/listenermanager.cpp
         src/main/cpp/filter/bilinearfilter.cpp
         src/main/cpp/filter/simplefilter.cpp
         src/main/cpp/filter/filtercontroller.cpp
         src/main/cpp/util/shaderutil.cpp
         src/main/cpp/util/glfloatarray.cpp
         src/main/cpp/util/loadtextureutil.cpp
+        src/main/cpp/util/texcoordsutil.cpp
+        src/main/cpp/util/vertexutil.cpp
         )
 
 # Searches for a specified prebuilt library and stores the path as a

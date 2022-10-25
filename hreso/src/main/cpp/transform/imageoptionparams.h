@@ -14,30 +14,7 @@
 using namespace std;
 class ImageOptionParams : public IOptions {
 public:
-    string getName() override;
-
-    int getType() override;
-
-    string getAddress() override;
-
-    string getSaveAddress() override;
-
-    int getScaleType() override;
-
-    float getScaleRatio() override;
-
-    int getScaleWidth() override;
-
-    int getScaleHeight() override;
-
-    bool getAsync() override;
-
-    string getFilterType() override;
-
-    bool getFront() override;
-
     void setOptions(string options) override;
-
 };
 
 

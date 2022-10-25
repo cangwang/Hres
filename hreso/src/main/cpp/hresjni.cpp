@@ -6,9 +6,11 @@
 #include <android/log.h>
 #include <android/bitmap.h>
 #include <android/native_window_jni.h>
+#include <transform/imageoptionparams.h>
 #include <transform/hrestransformer.h>
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <util/stb_image_write.h>
+#include <transform/imageoptionparams.h>
 
 #define LOG_TAG "HRESJNI"
 #define HLOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
@@ -30,22 +32,26 @@ JNIEXPORT void JNICALL HRES(nativeCreateTransformer)(
     }
 }
 
-JNIEXPORT jobject JNICALL HRES(nativeTransformBitmap)(
+JNIEXPORT void JNICALL HRES(nativeTransform) (
         JNIEnv *env,
-        jobject instance, jobject bitmap) {
-    HLOGV("nativeTransformBitmap");
-}
-
-JNIEXPORT jobject JNICALL HRES(nativeTransform)(
-        JNIEnv *env,
-        jobject instance, jstring address) {
+        jobject instance, jstring options) {
     HLOGV("nativeTransform");
+    if (hresTransformer) {
+        const char* optionsStr = env->GetStringUTFChars(options, JNI_FALSE);
+        hresTransformer->addOption(string(optionsStr));
+        env->ReleaseStringUTFChars(options, optionsStr);
+    }
 }
 
 JNIEXPORT void JNICALL HRES(nativeTransformAsync)(
         JNIEnv *env,
-        jobject instance, jobject bitmap, jobject listener) {
+        jobject instance, jstring options, jobject listener) {
     HLOGV("nativeTransformAsync");
+    if (hresTransformer) {
+        const char* optionsStr = env->GetStringUTFChars(options, JNI_FALSE);
+        hresTransformer->addOption(string(optionsStr));
+        env->ReleaseStringUTFChars(options, optionsStr);
+    }
 }
 
 JNIEXPORT void JNICALL HRES(nativeTransformRelease)(

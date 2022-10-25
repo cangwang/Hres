@@ -12,6 +12,7 @@
 #include <transform/imagehrestransformer.h>
 #include <egl/eglcore.h>
 #include <transform/optionparser.h>
+#include <jni.h>
 
 #define LOG_TAG "HresTransformer"
 #define HLOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
@@ -25,11 +26,13 @@ public:
     void addOption(string options);
     void transform();
     void release();
+    void setManager(jobject listener);
 
 private:
     shared_ptr<OptionParser> optionParser;
     shared_ptr<deque<IOptions*>> optionsList;
     shared_ptr<ImageHresTransformer> imageHresTransformer;
+    shared_ptr<>
     bool removeOptions(string address);
 };
 

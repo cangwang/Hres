@@ -1,6 +1,7 @@
 package com.cangwang.hreso.util
 
 import android.graphics.Bitmap
+import com.cangwang.hreso.impl.HresListener
 
 object HresJniUtil {
 
@@ -10,11 +11,9 @@ object HresJniUtil {
 
     external fun nativeCreateTransformer(tag: String, optionParams: String)
 
-    external fun nativeTransform(address: String): Bitmap
+    external fun nativeTransform(option: String)
 
-    external fun nativeTransformBitmap(bitmap: Bitmap): Bitmap
-
-    external fun nativeTransformAsync(bitmap: Bitmap, listener: Bitmap)
+    external fun nativeTransformAsync(option: String, listener: HresListener)
 
     external fun nativeTransformRelease()
 }

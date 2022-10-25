@@ -7,10 +7,10 @@
 
 void ImageOptionParams::setOptions(string options) {
     if (options.empty()) {
-
+        HLOGE("option is null");
         return;
     }
-
+    this->options = options;
     char g_log_info[200];
 
     JSON_Value *root_value = json_parse_string(options.c_str());
@@ -31,48 +31,4 @@ void ImageOptionParams::setOptions(string options) {
         front = json_object_get_boolean(jsonObject, "front");
         async = json_object_get_boolean(jsonObject, "async");
     }
-}
-
-string ImageOptionParams::getFilterType() {
-    return filterType;
-}
-
-string ImageOptionParams::getName() {
-    return name;
-}
-
-int ImageOptionParams::getType() {
-    return type;
-}
-
-string ImageOptionParams::getAddress() {
-    return address;
-}
-
-int ImageOptionParams::getScaleType() {
-    return scaleType;
-}
-
-float ImageOptionParams::getScaleRatio() {
-    return scaleRatio;
-}
-
-int ImageOptionParams::getScaleWidth() {
-    return scaleWidth;
-}
-
-int ImageOptionParams::getScaleHeight() {
-    return scaleHeight;
-}
-
-bool ImageOptionParams::getAsync() {
-    return async;
-}
-
-bool ImageOptionParams::getFront() {
-    return front;
-}
-
-string ImageOptionParams::getSaveAddress() {
-    return saveAddress;
 }

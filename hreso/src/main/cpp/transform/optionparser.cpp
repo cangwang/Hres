@@ -19,7 +19,7 @@ IOptions* OptionParser::parseOptions(string options) {
     if (jsonValueType == JSONObject) {
         JSON_Object *jsonObject = json_value_get_object(root_value);
 
-        //解析descript
+        // type类型
         const int type = (int)json_object_get_number(jsonObject, "type");
         IOptions *option = nullptr;
         if (type == 1) {

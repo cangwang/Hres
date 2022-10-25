@@ -13,6 +13,11 @@ FilterController::~FilterController() {
     if (eglCore != nullptr) {
         eglCore->release();
     }
+    if (saveImgData != nullptr) {
+        saveImgData = nullptr;
+    }
+
+    destroyPixelBuffers();
     option = nullptr;
 }
 
@@ -55,7 +60,7 @@ void FilterController::render() {
 void FilterController::save(IOptions* option) {
     string address;
     if (option->getSaveAddress().empty()) {
-        HLOGV("saveAddress is null, use orgin address");
+        HLOGV("saveAddress is null, use origin address");
         address = option->getAddress();
     } else {
         address = option->getSaveAddress();
@@ -86,6 +91,11 @@ void FilterController::release() {
     if (eglCore != nullptr) {
         eglCore->release();
     }
+    if (!filterList.empty()) {
+        for (IFilter* filter: filterList) {
+            filter->releaseTexture();
+        }
+    }
     filterList.clear();
 }
 
@@ -106,7 +116,7 @@ void FilterController::initPixelBuffer() {
 //    mPhoSize = width*height*4;
 
     glGenBuffers(1,&pixelBuffer);
-    glBindBuffer(GL_PIXEL_PACK_BUFFER,pixelBuffer);
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, pixelBuffer);
     glBufferData(GL_PIXEL_PACK_BUFFER,imgSize, nullptr,GL_STATIC_READ);
 }
 
@@ -120,6 +130,7 @@ void FilterController::drawPixelBuffer() {
             HLOGV("imgSize = %",  imgSize);
             saveImgData = (unsigned char *) glMapBufferRange(GL_PIXEL_PACK_BUFFER, 0, imgSize,
                                                              GL_MAP_READ_BIT);
+
         } else {
             HLOGE("imgSize = 0");
         }
