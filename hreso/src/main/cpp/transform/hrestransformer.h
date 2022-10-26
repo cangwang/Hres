@@ -12,6 +12,7 @@
 #include <transform/imagehrestransformer.h>
 #include <egl/eglcore.h>
 #include <transform/optionparser.h>
+#include <transform/listenermanager.h>
 #include <jni.h>
 
 #define LOG_TAG "HresTransformer"
@@ -26,12 +27,13 @@ public:
     void addOption(string options);
     void transform();
     void release();
-    void setManager(jobject listener);
+    void setListener(ListenerManager* listenerManager);
 
 private:
     shared_ptr<OptionParser> optionParser;
     shared_ptr<deque<IOptions*>> optionsList;
     shared_ptr<ImageHresTransformer> imageHresTransformer;
+    ListenerManager* listenerManager;
     bool removeOptions(string address);
 };
 

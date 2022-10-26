@@ -13,6 +13,11 @@ HresTransformer::~HresTransformer() {
     if (optionParser != nullptr) {
         optionParser = nullptr;
     }
+    listenerManager = nullptr;
+}
+
+void HresTransformer::setListener(ListenerManager* listenerManager) {
+   this->listenerManager = listenerManager;
 }
 
 void HresTransformer::addOption(string options) {

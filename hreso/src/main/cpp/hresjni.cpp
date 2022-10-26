@@ -44,9 +44,30 @@ JNIEXPORT void JNICALL HRES(nativeTransform) (
     }
 }
 
+JNIEXPORT void JNICALL HRES(nativeSetListener)(
+        JNIEnv *env,
+        jobject instance, jobject listener) {
+    HLOGV("nativeSetListener");
+    if (hresTransformer != nullptr && listener != nullptr) {
+        JavaVM *javaVm;
+        if (env->GetJavaVM(&javaVm) != JNI_OK) {
+            return;
+        }
+        if (listener) {
+            env->DeleteGlobalRef(listener);
+        }
+        listener = env->NewGlobalRef(listener);
+
+        ListenerManager* listenerManager = new ListenerManager(javaVm);
+
+        listenerManager->setListener(listener);
+        hresTransformer->setListener(listenerManager);
+    }
+}
+
 JNIEXPORT void JNICALL HRES(nativeTransformAsync)(
         JNIEnv *env,
-        jobject instance, jstring options, jobject listener) {
+        jobject instance, jstring options) {
     HLOGV("nativeTransformAsync");
     if (hresTransformer) {
         const char* optionsStr = env->GetStringUTFChars(options, JNI_FALSE);
@@ -60,6 +81,12 @@ JNIEXPORT void JNICALL HRES(nativeTransformRelease)(
         jobject instance) {
     if (hresTransformer != nullptr) {
         hresTransformer->release();
+        hresTransformer = nullptr;
+    }
+
+    if (listener) {
+        env->DeleteGlobalRef(listener);
+        listener = nullptr;
     }
 }
 

@@ -31,7 +31,7 @@ class OptionParams {
         return json.toString()
     }
 
-    fun toParams(option: String) {
+    fun parse(option: String) {
         val json = JSONObject(option)
         name = json.optString("name")
         address = json.optString("address")
