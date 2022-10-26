@@ -1,5 +1,5 @@
 //
-// Created by zengjiale on 2022/8/15.
+// Created by cangwang on 2022/8/15.
 //
 #include <jni.h>
 #include <string>
@@ -9,6 +9,7 @@
 #include <transform/imageoptionparams.h>
 #include <transform/hrestransformer.h>
 #define STB_IMAGE_WRITE_IMPLEMENTATION
+#define STB_IMAGE_IMPLEMENTATION
 #include <util/stb_image_write.h>
 #include <transform/imageoptionparams.h>
 

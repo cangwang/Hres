@@ -1,5 +1,5 @@
 //
-// Created by zengjiale on 2022/10/14.
+// Created by cangwang on 2022/10/14.
 //
 
 #ifndef HRES_HRESTRANSFORMER_H
@@ -32,7 +32,6 @@ private:
     shared_ptr<OptionParser> optionParser;
     shared_ptr<deque<IOptions*>> optionsList;
     shared_ptr<ImageHresTransformer> imageHresTransformer;
-    shared_ptr<>
     bool removeOptions(string address);
 };
 

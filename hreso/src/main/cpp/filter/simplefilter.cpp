@@ -1,5 +1,5 @@
 //
-// Created by asus on 2022/10/19.
+// Created by cangwang on 2022/10/19.
 //
 
 #include "simplefilter.h"
@@ -63,19 +63,24 @@ void SimpleFilter::destroyFilter() {
 }
 
 void SimpleFilter::setOptions(IOptions *config) {
-
+//    vertexArray->setArray(VertexUtil::create(config->width, config->height, new PointRect(0, 0, config->width, config->height), vertexArray->array));
+//    float* rgba = TexCoordsUtil::create(config->width, config->height, new PointRect(0, 0, config->width, config->height), rgbaArray->array);
+//    rgbaArray->setArray(rgba);
 }
 
 void SimpleFilter::updateViewPort(int width, int height) {
-    IFilter::updateViewPort(width, height);
+    surfaceWidth = width;
+    surfaceHeight = height;
 }
 
 GLuint SimpleFilter::getExternalTexture() {
-    return 0;
+    return textureId;
 }
 
 void SimpleFilter::releaseTexture() {
-
+    if (textureId != -1) {
+        glDeleteTextures(1,&textureId);
+    }
 }
 
 void SimpleFilter::swapBuffers() {

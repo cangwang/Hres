@@ -46,11 +46,26 @@ void EGLCore::start() {
     //创建离屏渲染Surface
     mSurface = eglCreatePbufferSurface(mDisplay, config, 0);
     if (mSurface == nullptr || mSurface == EGL_NO_SURFACE){
-        HLOGE("eglCreatePbufferSurface failed: %d",eglGetError());
+        EGLint error = eglGetError();
+        HLOGE("eglCreatePbufferSurface failed: %d", error);
+        switch (error) {
+            case EGL_BAD_ALLOC:
+                HLOGE("Not enough resources available");
+                break;
+            case EGL_BAD_CONFIG:
+                HLOGE("provided EGLConfig is invalid");
+                break;
+            case EGL_BAD_PARAMETER:
+                HLOGE("provided EGL_WIDTH and EGL_HEIGHT is invalid");
+                break;
+            case EGL_BAD_MATCH:
+                HLOGE("Check window and EGLConfig attributes");
+                break;
+        }
         return;
     }
     ELOGD("eglCreatePbufferSurface success");
-    if (eglMakeCurrent(mDisplay, mSurface, mSurface, mContext) == false) {
+    if (!eglMakeCurrent(mDisplay, mSurface, mSurface, mContext)) {
         HLOGE("make current error:${Integer.toHexString(egl?.eglGetError() ?: 0)}");
     }
     ELOGD("eglMakeCurrent success");
@@ -90,8 +105,12 @@ EGLContext EGLCore::createContext(EGLDisplay eglDisplay, EGLConfig eglConfig) {
                              EGL_NONE};
     // EGL_NO_CONTEXT表示不向其它的context共享资源
     mContext = eglCreateContext(eglDisplay, eglConfig, EGL_NO_CONTEXT, contextAttrib);
-    if (mContext == EGL_NO_CONTEXT){
-        HLOGE("eglCreateContext failed: %d",eglGetError());
+    if (mContext == EGL_NO_CONTEXT) {
+        EGLint error = eglGetError();
+        HLOGE("eglCreateContext failed: %d", error);
+        if (eglGetError() == EGL_BAD_CONFIG) {
+            HLOGE("EGL_BAD_CONFIG");
+        }
         return GL_FALSE;
     }
     return mContext;

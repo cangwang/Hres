@@ -1,11 +1,12 @@
 //
-// Created by zengjiale on 2022/10/14.
+// Created by cangwang on 2022/10/14.
 //
 
 #ifndef HRES_IMAGEOPTIONPARAMS_H
 #define HRES_IMAGEOPTIONPARAMS_H
 
 #include <transform/ioptions.h>
+#include <android/log.h>
 
 #define LOG_TAG "ImageOptionParams"
 #define HLOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)

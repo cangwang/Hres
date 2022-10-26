@@ -1,5 +1,5 @@
 //
-// Created by zengjiale on 2022/4/18.
+// Created by cangwang on 2022/4/18.
 //
 
 #include "texcoordsutil.h"

@@ -1,5 +1,5 @@
 //
-// Created by asus on 2022/10/19.
+// Created by cangwang on 2022/10/19.
 //
 
 #ifndef HRES_SIMPLEFILTER_H

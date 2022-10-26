@@ -1,5 +1,5 @@
 //
-// Created by asus on 2022/10/16.
+// Created by cangwang on 2022/10/16.
 //
 
 #ifndef HRES_IFILTER_H
@@ -9,6 +9,8 @@
 #include <transform/ioptions.h>
 #include <util/shaderutil.h>
 #include <util/glfloatarray.h>
+#include <util/vertexutil.h>
+#include <util/texcoordsutil.h>
 
 #define SHADER_STR(s) #s
 

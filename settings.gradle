@@ -9,3 +9,5 @@ dependencyResolutionManagement {
 rootProject.name = "Hres"
 include ':app'
 include ':hreso'
+include ':pickphotoview'
+include ':moretype'

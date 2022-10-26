@@ -1,5 +1,5 @@
 //
-// Created by asus on 2022/10/16.
+// Created by cangwang on 2022/10/16.
 //
 
 #ifndef HRES_BILINEARFILTER_H
