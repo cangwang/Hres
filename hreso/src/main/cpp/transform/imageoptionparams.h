@@ -15,7 +15,7 @@
 using namespace std;
 class ImageOptionParams : public IOptions {
 public:
-    void setOptions(string options) override;
+    void setOptions(string options, jobject op) override;
 };
 
 

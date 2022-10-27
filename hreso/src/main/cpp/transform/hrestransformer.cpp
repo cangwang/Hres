@@ -20,11 +20,11 @@ void HresTransformer::setListener(ListenerManager* listenerManager) {
    this->listenerManager = listenerManager;
 }
 
-void HresTransformer::addOption(string options) {
+void HresTransformer::addOption(string options, jobject op) {
     if (optionParser == nullptr) {
         optionParser = shared_ptr<OptionParser>();
     }
-    IOptions* option = optionParser->parseOptions(options);
+    IOptions* option = optionParser->parseOptions(options, op);
     if (option->getFront()) {
         optionsList->push_front(option);
     } else {
@@ -36,11 +36,18 @@ void HresTransformer::transform() {
     if (!optionsList->empty()) {
         auto options = optionsList->front();
         optionsList->pop_front();
-        if (options->getType() == 1) {  //类型为图片
-            if (imageHresTransformer == nullptr) {
-                imageHresTransformer = make_shared<ImageHresTransformer>();
+        if (options != nullptr) {
+            if (listenerManager != nullptr) {
+                listenerManager->hresTransformStart(options->getObj());
             }
-            imageHresTransformer->transformOption(options);
+            if (options->getType() == 1) {  //类型为图片
+                if (imageHresTransformer == nullptr) {
+                    imageHresTransformer = make_shared<ImageHresTransformer>();
+                    imageHresTransformer->setListener(listenerManager);
+                }
+                imageHresTransformer->transformOption(options);
+                imageHresTransformer->transform();
+            }
         }
     }
 }

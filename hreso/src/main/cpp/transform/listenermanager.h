@@ -16,11 +16,11 @@ public:
 
     ~ListenerManager();
 
-    void hresTransformStart(string option);
+    void hresTransformStart(jobject option);
 
-    void hresTransformComplete(string option);
+    void hresTransformComplete(jobject option);
 
-    void hresTransformError(string option, string errorTag);
+    void hresTransformError(jobject option, string errorTag);
 
     void setListener(jobject &_listener) {
         listener = _listener;

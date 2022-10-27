@@ -24,7 +24,7 @@ class HresTransformer {
 public:
     HresTransformer();
     ~HresTransformer();
-    void addOption(string options);
+    void addOption(string options, jobject op);
     void transform();
     void release();
     void setListener(ListenerManager* listenerManager);

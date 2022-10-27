@@ -8,7 +8,7 @@
 #include <transform/ioptions.h>
 #include <list>
 #include <filter/filtercontroller.h>
-
+#include <transform/listenermanager.h>
 
 using namespace std;
 class ImageHresTransformer {
@@ -16,6 +16,7 @@ public:
     ImageHresTransformer();
     ~ImageHresTransformer();
     void transformOption(IOptions* options);
+    void setListener(ListenerManager* listenerManager);
     void transform();
     void release();
 

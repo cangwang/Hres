@@ -5,7 +5,7 @@
 #include "optionparser.h"
 #include <transform/imageoptionparams.h>
 
-IOptions* OptionParser::parseOptions(string options) {
+IOptions* OptionParser::parseOptions(string options, jobject op) {
     if (options.empty()) {
         HLOGE("options is empty");
         return nullptr;
@@ -25,7 +25,7 @@ IOptions* OptionParser::parseOptions(string options) {
         if (type == 1) {
             option = new ImageOptionParams();
         }
-        option->setOptions(options);
+        option->setOptions(options, op);
         return option;
     } else {
         HLOGE("not json object");

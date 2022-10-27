@@ -15,7 +15,7 @@
 
 class OptionParser {
 public:
-    IOptions* parseOptions(string options);
+    IOptions* parseOptions(string options, jobject op);
 };
 
 

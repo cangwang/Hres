@@ -10,6 +10,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <util/stb_image.h>
 #include <android/log.h>
+#include <transform/ioptions.h>
 
 #define LOG_TAG "LoadTextureUtil"
 #define HLOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
@@ -17,7 +18,9 @@
 
 using namespace std;
 class LoadTextureUtil {
+public:
     static GLuint loadTextureFromFile(const char *fileName, int *w, int *h,int *n);
+    static GLuint loadTextureFromFile(IOptions* options);
 };
 
 

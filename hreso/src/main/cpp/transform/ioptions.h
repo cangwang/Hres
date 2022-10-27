@@ -3,13 +3,18 @@
 //
 #include <string>
 #include <util/parson.h>
+#include <jni.h>
 #ifndef HRES_IOPTIONS_H
 #define HRES_IOPTIONS_H
 
 using namespace std;
 class IOptions {
 public:
-    virtual void setOptions(string options) {
+    ~IOptions() {
+        options.clear();
+        op = nullptr;
+    }
+    virtual void setOptions(string options, jobject op) {
         this->options = options;
     };
     virtual string getName() {
@@ -49,6 +54,15 @@ public:
         return options;
     };
 
+    virtual jobject getObj() {
+        return op;
+    }
+
+    int srcWidth;  //原图宽度
+    int srcHeight;  //圆度高度
+    int srcChannel; //原图通道数
+    int textureId; //纹理id
+
 protected:
     string name;
     int type;
@@ -62,6 +76,7 @@ protected:
     bool front;  // 是否插入队头
     bool async;
     string options;
+    jobject op; // option java圆形
 };
 
 #endif //HRES_IOPTIONS_H

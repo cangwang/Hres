@@ -32,6 +32,7 @@ void FilterController::transformFilter(IOptions *option) {
         }
         filterName = option->getName();
     }
+    LoadTextureUtil::loadTextureFromFile(option);
     this->option = option;
 }
 
@@ -64,6 +65,10 @@ void FilterController::save(IOptions* option) {
         address = option->getAddress();
     } else {
         address = option->getSaveAddress();
+    }
+
+    if (listenerManager != nullptr) {
+        listenerManager->hresTransformComplete(option->getObj());
     }
 }
 
@@ -146,3 +151,7 @@ void FilterController::destroyPixelBuffers() {
     }
 }
 
+
+void FilterController::setListenManager(ListenerManager *listenerManager) {
+    this->listenerManager = listenerManager;
+}

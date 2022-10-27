@@ -12,6 +12,12 @@ ImageHresTransformer::~ImageHresTransformer() {
 
 }
 
+void ImageHresTransformer::setListener(ListenerManager *listenerManager) {
+    if (filterController != nullptr) {
+        filterController->setListenManager(listenerManager);
+    }
+}
+
 void ImageHresTransformer::transformOption(IOptions *option) {
     if (filterController != nullptr) {
         filterController->transformFilter(option);
@@ -25,5 +31,7 @@ void ImageHresTransformer::transform() {
 }
 
 void ImageHresTransformer::release() {
-    filterController->release();
+    if (filterController != nullptr) {
+        filterController->release();
+    }
 }

@@ -9,16 +9,50 @@ ListenerManager::~ListenerManager() {
     javaVM = nullptr;
 }
 
-void ListenerManager::hresTransformStart(string option) {
-
+void ListenerManager::hresTransformStart(jobject option) {
+    JNIEnv *env;
+    bool isNeedDetach = false;
+    if (!attachCurrentThread(env, isNeedDetach)) {
+        return;
+    }
+    jclass clazz_listener = env->GetObjectClass(listener);
+    jmethodID methodId = env->GetMethodID(clazz_listener, "hresTransformStart",
+                                          "(Lcom/cangwang/hreso/bean/OptionParams;)V");
+    env->CallVoidMethod(listener, methodId, option);
+    if (isNeedDetach) {
+        javaVM->DetachCurrentThread();
+    }
 }
 
-void ListenerManager::hresTransformComplete(string option) {
-
+void ListenerManager::hresTransformComplete(jobject option) {
+    JNIEnv *env;
+    bool isNeedDetach = false;
+    if (!attachCurrentThread(env, isNeedDetach)) {
+        return;
+    }
+    jclass clazz_listener = env->GetObjectClass(listener);
+    jmethodID methodId = env->GetMethodID(clazz_listener, "hresTransformComplete",
+                                          "(Lcom/cangwang/hreso/bean/OptionParams;)V");
+    env->CallVoidMethod(listener, methodId, option);
+    if (isNeedDetach) {
+        javaVM->DetachCurrentThread();
+    }
 }
 
-void ListenerManager::hresTransformError(string option, string errorTag) {
-
+void ListenerManager::hresTransformError(jobject option, string errorMsg) {
+    JNIEnv *env;
+    bool isNeedDetach = false;
+    if (!attachCurrentThread(env, isNeedDetach)) {
+        return;
+    }
+    jstring jmsg = env->NewStringUTF(errorMsg.c_str());
+    jclass clazz_listener = env->GetObjectClass(listener);
+    jmethodID methodId = env->GetMethodID(clazz_listener, "onFailed", "(Lcom/cangwang/hreso/bean/OptionParams;Ljava/lang/String;)V");
+    env->CallVoidMethod(listener, methodId, option, jmsg);
+    env->DeleteLocalRef(jmsg);
+    if (isNeedDetach) {
+        javaVM->DetachCurrentThread();
+    }
 }
 
 void ListenerManager::callVoidMethod(const char *methodName, const char *sign, ...) {

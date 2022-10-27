@@ -11,7 +11,8 @@
 #include <list>
 #include <egl/eglcore.h>
 #include <util/stb_image_write.h>
-
+#include <transform/listenermanager.h>
+#include <util/loadtextureutil.h>
 
 #define LOG_TAG "FilterController"
 #define HLOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
@@ -23,6 +24,7 @@ public:
     FilterController();
     ~FilterController();
     void transformFilter(IOptions* option);
+    void setListenManager(ListenerManager* listenerManager);
     void save(IOptions* option);
     void render();
     void release();
@@ -38,6 +40,7 @@ private:
     int imgHeight = -1;
     int scaleImgWidth = -1;
     int scaleImgHeight = -1;
+    ListenerManager* listenerManager;
 
     void initPixelBuffer();
     void drawPixelBuffer();

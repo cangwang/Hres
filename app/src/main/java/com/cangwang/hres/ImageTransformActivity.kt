@@ -45,6 +45,6 @@ class ImageTransformActivity: AppCompatActivity() {
         val option = OptionParams()
         option.address = selectPaths.path
         option.scaleRatio = 1.0f
-        HresJniUtil.nativeTransform(option.toJson())
+        HresJniUtil.nativeTransform(option.toJson(), option);
     }
 }

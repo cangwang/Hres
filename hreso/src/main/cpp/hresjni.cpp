@@ -35,11 +35,11 @@ JNIEXPORT void JNICALL HRES(nativeCreateTransformer)(
 
 JNIEXPORT void JNICALL HRES(nativeTransform) (
         JNIEnv *env,
-        jobject instance, jstring options) {
+        jobject instance, jstring options, jobject op) {
     HLOGV("nativeTransform");
     if (hresTransformer) {
         const char* optionsStr = env->GetStringUTFChars(options, JNI_FALSE);
-        hresTransformer->addOption(string(optionsStr));
+        hresTransformer->addOption(string(optionsStr), op);
         env->ReleaseStringUTFChars(options, optionsStr);
     }
 }
@@ -62,17 +62,6 @@ JNIEXPORT void JNICALL HRES(nativeSetListener)(
 
         listenerManager->setListener(listener);
         hresTransformer->setListener(listenerManager);
-    }
-}
-
-JNIEXPORT void JNICALL HRES(nativeTransformAsync)(
-        JNIEnv *env,
-        jobject instance, jstring options) {
-    HLOGV("nativeTransformAsync");
-    if (hresTransformer) {
-        const char* optionsStr = env->GetStringUTFChars(options, JNI_FALSE);
-        hresTransformer->addOption(string(optionsStr));
-        env->ReleaseStringUTFChars(options, optionsStr);
     }
 }
 

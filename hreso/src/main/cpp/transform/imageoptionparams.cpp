@@ -5,7 +5,7 @@
 #include "imageoptionparams.h"
 
 
-void ImageOptionParams::setOptions(string options) {
+void ImageOptionParams::setOptions(string options, jobject op) {
     if (options.empty()) {
         HLOGE("option is null");
         return;
@@ -31,4 +31,5 @@ void ImageOptionParams::setOptions(string options) {
         front = json_object_get_boolean(jsonObject, "front");
         async = json_object_get_boolean(jsonObject, "async");
     }
+    this->op = op;
 }
