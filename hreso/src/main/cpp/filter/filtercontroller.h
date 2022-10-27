@@ -45,7 +45,7 @@ private:
     void initPixelBuffer();
     void drawPixelBuffer();
     void destroyPixelBuffers();
-    bool saveImg(string saveFileAddress,unsigned char* data,int width,int height,int type);
+    bool saveImg(const string& saveFileAddress,unsigned char* data,int width,int height,int type);
 };
 
 

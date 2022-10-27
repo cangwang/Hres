@@ -43,7 +43,7 @@ void FilterController::render() {
     }
     glClearColor(0, 0, 0, 0);
     glClear(GL_COLOR_BUFFER_BIT);
-
+    initPixelBuffer();
     if (!filterList.empty()) {
         for (IFilter* filter: filterList) {
             filter->renderFrame();
@@ -53,6 +53,7 @@ void FilterController::render() {
     if (eglCore != nullptr) {
         eglCore->swapBuffer();
     }
+    drawPixelBuffer();
     if (option != nullptr) {  //保存图片
         save(option);
     }
@@ -67,25 +68,37 @@ void FilterController::save(IOptions* option) {
         address = option->getSaveAddress();
     }
 
+    saveImg(option->getSaveAddress(), saveImgData, scaleImgWidth, scaleImgHeight, option->srcChannel);
+
     if (listenerManager != nullptr) {
         listenerManager->hresTransformComplete(option->getObj());
     }
 }
 
-bool FilterController::saveImg(string saveFileAddress,unsigned char* data,int width,int height,int type) {
+bool FilterController::saveImg(const string& saveFileAddress,unsigned char* data,int width,int height, int channel) {
     //屏幕到文件保存需要使用
     stbi_flip_vertically_on_write(1);
     //保存图片到本地文件
-    if (stbi_write_png(saveFileAddress.c_str(), width, height, 4, data, 0)) {
-        HLOGV("save address = %s success", saveFileAddress.c_str());
-        if(type ==1)
+    if (channel == 3) {
+        if (stbi_write_jpg(saveFileAddress.c_str(), width, height, channel, data, 0)) {
+            HLOGV("save address = %s success", saveFileAddress.c_str());
             free(data);
-        return true;
-    } else {
-        if(type ==1)
+            return true;
+        } else {
             free(data);
-        HLOGE("save address = %s fail", saveFileAddress.c_str());
-        return false;
+            HLOGE("save fail address = %s fail", saveFileAddress.c_str());
+            return false;
+        }
+    } else if (channel == 4) {
+        if (stbi_write_png(saveFileAddress.c_str(), width, height, channel, data, 0)) {
+            HLOGV("save address = %s success", saveFileAddress.c_str());
+            free(data);
+            return true;
+        } else {
+            free(data);
+            HLOGE("save fail address = %s fail", saveFileAddress.c_str());
+            return false;
+        }
     }
 }
 
@@ -106,13 +119,15 @@ void FilterController::release() {
 
 void FilterController::initPixelBuffer() {
     destroyPixelBuffers();
-    pixelBuffer = 0;
+    pixelBuffer = -1;
 
     if (option != nullptr) {
         if (option->getScaleRatio() != 1) {
-
+            scaleImgWidth = option->srcWidth * option->getScaleRatio();
+            scaleImgHeight = option->srcHeight * option->getScaleRatio();
         } else if (option->getScaleWidth() != -1 && option->getScaleHeight() != -1) {
-
+            scaleImgWidth = option->getScaleWidth();
+            scaleImgHeight = option->getScaleHeight();
         }
     }
 
@@ -122,11 +137,15 @@ void FilterController::initPixelBuffer() {
 
     glGenBuffers(1,&pixelBuffer);
     glBindBuffer(GL_PIXEL_PACK_BUFFER, pixelBuffer);
-    glBufferData(GL_PIXEL_PACK_BUFFER,imgSize, nullptr,GL_STATIC_READ);
+    glBufferData(GL_PIXEL_PACK_BUFFER, imgSize, nullptr, GL_STATIC_READ);
 }
 
 
 void FilterController::drawPixelBuffer() {
+    if (pixelBuffer < 0) {
+        HLOGE("pixelBuffer not init");
+        return;
+    }
     if (scaleImgWidth > 0 && scaleImgHeight > 0) {
         glBindBuffer(GL_PIXEL_PACK_BUFFER, pixelBuffer);
         glReadPixels(0, 0, scaleImgWidth, scaleImgHeight, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
@@ -135,13 +154,15 @@ void FilterController::drawPixelBuffer() {
             HLOGV("imgSize = %",  imgSize);
             saveImgData = (unsigned char *) glMapBufferRange(GL_PIXEL_PACK_BUFFER, 0, imgSize,
                                                              GL_MAP_READ_BIT);
-
         } else {
             HLOGE("imgSize = 0");
         }
         glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
         //解除绑定PBO
         glBindBuffer(GL_PIXEL_PACK_BUFFER, GL_NONE);
+    } else {
+        HLOGE("scaleImageWith or scaleImageHeight = 0");
+        return;
     }
 }
 

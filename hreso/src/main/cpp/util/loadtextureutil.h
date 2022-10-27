@@ -7,7 +7,6 @@
 
 #include <GLES3/gl3.h>
 #include <GLES3/gl3ext.h>
-#define STB_IMAGE_IMPLEMENTATION
 #include <util/stb_image.h>
 #include <android/log.h>
 #include <transform/ioptions.h>

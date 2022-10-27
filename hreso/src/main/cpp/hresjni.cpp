@@ -8,8 +8,9 @@
 #include <android/native_window_jni.h>
 #include <transform/imageoptionparams.h>
 #include <transform/hrestransformer.h>
-#define STB_IMAGE_WRITE_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include <util/stb_image.h>
 #include <util/stb_image_write.h>
 #include <transform/imageoptionparams.h>
 
