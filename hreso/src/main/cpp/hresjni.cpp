@@ -21,7 +21,7 @@
 #define HRES(sig) Java_com_cangwang_hreso_util_HresJniUtil_##sig
 
 unique_ptr<HresTransformer> hresTransformer;
-jobject listener = nullptr;
+jobject l = nullptr;
 
 extern "C" {
 
@@ -54,14 +54,14 @@ JNIEXPORT void JNICALL HRES(nativeSetListener)(
         if (env->GetJavaVM(&javaVm) != JNI_OK) {
             return;
         }
-        if (listener) {
-            env->DeleteGlobalRef(listener);
+        if (l) {
+            env->DeleteGlobalRef(l);
         }
-        listener = env->NewGlobalRef(listener);
+        l = env->NewGlobalRef(listener);
 
         ListenerManager* listenerManager = new ListenerManager(javaVm);
 
-        listenerManager->setListener(listener);
+        listenerManager->setListener(l);
         hresTransformer->setListener(listenerManager);
     }
 }
@@ -74,9 +74,9 @@ JNIEXPORT void JNICALL HRES(nativeTransformRelease)(
         hresTransformer = nullptr;
     }
 
-    if (listener) {
-        env->DeleteGlobalRef(listener);
-        listener = nullptr;
+    if (l) {
+        env->DeleteGlobalRef(l);
+        l = nullptr;
     }
 }
 

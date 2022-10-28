@@ -6,24 +6,37 @@
 
 void SimpleFilter::initFilter() {
     VERTEX_SHADER = SHADER_STR(
-            attribute vec4 vPosition;
-            attribute vec4 vTexCoordinate;
-            varying vec2 v_TexCoordinate;
+            in vec4 vPosition;
+            in vec4 vTexCoordinate;
+            out vec2 v_TexCoordinate;
             void main() {
                 v_TexCoordinate = vec2(vTexCoordinate.x, vTexCoordinate.y);
                 gl_Position = vPosition;
             }
     );
 
-    FRAGMENT_SHADER = SHADER_STR(
-            precision mediump float;
-            uniform sampler2D uTexture;
-            varying vec2 v_TexCoordinate;
-            void main () {
-                gl_FragColor = texture2D(uTexture, v_TexCoordinate);
+//    FRAGMENT_SHADER = SHADER_STR(
+//            ##version 300 es
+//            ##extension GL_OES_EGL_image_external_essl3 : require
+//            precision mediump float;
+//            uniform sampler2D uTexture;
+//            in vec2 v_TexCoordinate;
+//            out vec4 gl_FragColor;
+//            void main () {
+//                gl_FragColor = texture2D(uTexture, v_TexCoordinate);
+////                gl_FragColor = vec4(1.0,0.2,0.5,1.0);
+//            }
+//    );
+    FRAGMENT_SHADER = "#version 300 es"
+                      "#extension GL_OES_EGL_image_external_essl3 : require"
+                      "precision mediump float;"
+                      "uniform sampler2D uTexture;"
+                      "in vec2 v_TexCoordinate;"
+                      "out vec4 gl_FragColor;"
+                      "void main () {"
+                      "gl_FragColor = texture2D(uTexture, v_TexCoordinate);"
 //                gl_FragColor = vec4(1.0,0.2,0.5,1.0);
-            }
-    );
+                      "}";
     shaderProgram = ShaderUtil::createProgram(VERTEX_SHADER, FRAGMENT_SHADER);
     uTextureLocation = glGetUniformLocation(shaderProgram, "uTexture");
     positionLocation = glGetAttribLocation(shaderProgram, "vPosition");

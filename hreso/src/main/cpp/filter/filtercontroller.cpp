@@ -22,6 +22,10 @@ FilterController::~FilterController() {
 }
 
 void FilterController::transformFilter(IOptions *option) {
+    if (eglCore == nullptr) {
+        eglCore = make_shared<EGLCore>();
+        eglCore->start();
+    }
     if (option == nullptr) {
         HLOGV("transformFilter optioni nullptr");
         return;
@@ -67,11 +71,21 @@ void FilterController::save(IOptions* option) {
     } else {
         address = option->getSaveAddress();
     }
+    if (scaleImgWidth > 0 && scaleImgHeight > 0) {
+        bool result = saveImg(address, saveImgData, scaleImgWidth, scaleImgHeight,
+                              option->srcChannel);
 
-    saveImg(option->getSaveAddress(), saveImgData, scaleImgWidth, scaleImgHeight, option->srcChannel);
-
-    if (listenerManager != nullptr) {
-        listenerManager->hresTransformComplete(option->getObj());
+        if (listener != nullptr) {
+            if (result) {
+                listener->filterRenderComplete(option);
+            } else {
+                listener->filterRenderFail(option, string("saveImage fail"));
+            }
+        }
+    } else {
+        if (listener != nullptr) {
+            listener->filterRenderFail(option, string("scaleImgWidth || scaleImgHeight = 0"));
+        }
     }
 }
 
@@ -115,6 +129,7 @@ void FilterController::release() {
         }
     }
     filterList.clear();
+    listener = nullptr;
 }
 
 void FilterController::initPixelBuffer() {
@@ -173,6 +188,6 @@ void FilterController::destroyPixelBuffers() {
 }
 
 
-void FilterController::setListenManager(ListenerManager *listenerManager) {
-    this->listenerManager = listenerManager;
+void FilterController::setListener(FilterListener *listener) {
+    this->listener = listener;
 }

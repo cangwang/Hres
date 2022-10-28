@@ -27,24 +27,28 @@ class ImageTransformActivity: AppCompatActivity() {
         btn_album_src.setImageBitmap(srcBitmap)
         HresJniUtil.nativeCreateTransformer("image", "")
         HresJniUtil.nativeSetListener(object : HresListener {
-            override fun hresTransformStart(option: String) {
+            override fun hresTransformStart(option: OptionParams) {
 
             }
 
-            override fun hresTransformComplete(option: String) {
-                val desOpt = OptionParams()
-                desOpt.parse(option)
-                val desBitmap = BitmapFactory.decodeFile(desOpt.saveAddress)
+            override fun hresTransformComplete(option: OptionParams) {
+                val desBitmap = BitmapFactory.decodeFile(option.saveAddress)
                 btn_album_transform.setImageBitmap(desBitmap)
             }
 
-            override fun hresTransformError(option: String, errorTag: String) {
+            override fun hresTransformError(option: OptionParams, errorTag: String) {
                 Log.e(TAG, "$errorTag $option")
             }
         })
         val option = OptionParams()
         option.address = selectPaths.path
         option.scaleRatio = 1.0f
-        HresJniUtil.nativeTransform(option.toJson(), option);
+        HresJniUtil.nativeTransform(option.toJson(), option)
+    }
+
+
+    override fun onDestroy() {
+        super.onDestroy()
+        HresJniUtil.nativeTransformRelease()
     }
 }

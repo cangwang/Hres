@@ -20,8 +20,6 @@ public:
 
     EGLConfig chooseConfig();
 
-    EGLint* getAttributes();
-
     EGLContext createContext(EGLDisplay eglDisplay, EGLConfig eglConfig);
 
     GLboolean buildContext(ANativeWindow *window);

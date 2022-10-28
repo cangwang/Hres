@@ -20,7 +20,7 @@
 #define HLOGV(...) __android_log_print(ANDROID_LOG_VERBOSE, LOG_TAG, __VA_ARGS__)
 
 using namespace std;
-class HresTransformer {
+class HresTransformer: FilterListener {
 public:
     HresTransformer();
     ~HresTransformer();
@@ -30,11 +30,17 @@ public:
     void setListener(ListenerManager* listenerManager);
 
 private:
+    void filterRenderComplete(IOptions *options) override;
+
+    void filterRenderFail(IOptions *options, string errorMsg) override;
+
+private:
     shared_ptr<OptionParser> optionParser;
     shared_ptr<deque<IOptions*>> optionsList;
     shared_ptr<ImageHresTransformer> imageHresTransformer;
     ListenerManager* listenerManager;
     bool removeOptions(string address);
+    bool isTransforming = false;
 };
 
 

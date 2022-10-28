@@ -11,7 +11,7 @@
 #include <list>
 #include <egl/eglcore.h>
 #include <util/stb_image_write.h>
-#include <transform/listenermanager.h>
+#include <filter/filterlistener.h>
 #include <util/loadtextureutil.h>
 
 #define LOG_TAG "FilterController"
@@ -24,7 +24,7 @@ public:
     FilterController();
     ~FilterController();
     void transformFilter(IOptions* option);
-    void setListenManager(ListenerManager* listenerManager);
+    void setListener(FilterListener* listener);
     void save(IOptions* option);
     void render();
     void release();
@@ -40,7 +40,7 @@ private:
     int imgHeight = -1;
     int scaleImgWidth = -1;
     int scaleImgHeight = -1;
-    ListenerManager* listenerManager;
+    FilterListener* listener;
 
     void initPixelBuffer();
     void drawPixelBuffer();

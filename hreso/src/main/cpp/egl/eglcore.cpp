@@ -21,6 +21,10 @@ EGLCore::~EGLCore() {
 
 void EGLCore::start() {
     mDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+    if (mDisplay == EGL_NO_DISPLAY) {
+        HLOGE("eglGetDisplay failed: %d", eglGetError());
+        return;
+    }
     GLint majorVersion;
     GLint minorVersion;
     //获取支持最低和最高版本
@@ -74,28 +78,24 @@ void EGLCore::start() {
 EGLConfig EGLCore::chooseConfig() {
     int configsCount = 0;
     EGLConfig configs;
-    EGLint* attributes = getAttributes();
+    EGLint attributes[] =
+            { EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT_KHR,
+              EGL_SURFACE_TYPE,EGL_PBUFFER_BIT,//EGL_WINDOW_BIT EGL_PBUFFER_BIT we will create a pixelbuffer surface
+              EGL_RED_SIZE,   8,
+              EGL_GREEN_SIZE, 8,
+              EGL_BLUE_SIZE,  8,
+              EGL_ALPHA_SIZE, 8,// if you need the alpha channel
+              EGL_DEPTH_SIZE, 0,// if you need the depth buffer
+              EGL_STENCIL_SIZE,0,
+              EGL_NONE
+            };
     int configSize = 1;
-    if (eglChooseConfig(mDisplay, attributes, &configs, configSize, &configsCount) == true) {
+    if (eglChooseConfig(mDisplay, attributes, &configs, configSize, &configsCount)) {
         return configs;
     } else {
         HLOGE("eglChooseConfig failed: %d",eglGetError());
     }
     return nullptr;
-}
-
-EGLint* EGLCore::getAttributes() {
-    EGLint attribList[] =
-            {EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT_KHR, //指定渲染api类别
-             EGL_RED_SIZE, 8,
-             EGL_GREEN_SIZE, 8,
-             EGL_BLUE_SIZE, 8,
-             EGL_ALPHA_SIZE, 8,
-             EGL_DEPTH_SIZE, 0,
-             EGL_STENCIL_SIZE, 0,
-             EGL_NONE
-    };
-    return attribList;
 }
 
 EGLContext EGLCore::createContext(EGLDisplay eglDisplay, EGLConfig eglConfig) {

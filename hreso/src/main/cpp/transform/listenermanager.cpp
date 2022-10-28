@@ -47,7 +47,7 @@ void ListenerManager::hresTransformError(jobject option, string errorMsg) {
     }
     jstring jmsg = env->NewStringUTF(errorMsg.c_str());
     jclass clazz_listener = env->GetObjectClass(listener);
-    jmethodID methodId = env->GetMethodID(clazz_listener, "onFailed", "(Lcom/cangwang/hreso/bean/OptionParams;Ljava/lang/String;)V");
+    jmethodID methodId = env->GetMethodID(clazz_listener, "hresTransformError", "(Lcom/cangwang/hreso/bean/OptionParams;Ljava/lang/String;)V");
     env->CallVoidMethod(listener, methodId, option, jmsg);
     env->DeleteLocalRef(jmsg);
     if (isNeedDetach) {

@@ -45,4 +45,11 @@ class OptionParams {
         front = json.optBoolean("front")
         async = json.optBoolean("async")
     }
+
+    override fun toString(): String {
+        return "OptionParams(name='$name', address='$address', saveAddress='$saveAddress', " +
+                "filterType='$filterType', type=$type, scaleType=$scaleType, " +
+                "scaleRatio=$scaleRatio, scaleWidth=$scaleWidth, scaleHeight=$scaleHeight," +
+                " front=$front, async=$async)"
+    }
 }

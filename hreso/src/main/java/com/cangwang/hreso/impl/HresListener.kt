@@ -1,11 +1,13 @@
 package com.cangwang.hreso.impl
 
+import com.cangwang.hreso.bean.OptionParams
+
 interface HresListener {
 
-    fun hresTransformStart(option: String)
+    fun hresTransformStart(option: OptionParams)
 
-    fun hresTransformComplete(option: String)
+    fun hresTransformComplete(option: OptionParams)
 
-    fun hresTransformError(option: String, errorTag: String)
+    fun hresTransformError(option: OptionParams, errorTag: String)
 
 }

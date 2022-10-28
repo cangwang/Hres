@@ -12,9 +12,9 @@ ImageHresTransformer::~ImageHresTransformer() {
 
 }
 
-void ImageHresTransformer::setListener(ListenerManager *listenerManager) {
+void ImageHresTransformer::setListener(FilterListener *listener) {
     if (filterController != nullptr) {
-        filterController->setListenManager(listenerManager);
+        filterController->setListener(listener);
     }
 }
 

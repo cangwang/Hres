@@ -30,10 +30,14 @@ void HresTransformer::addOption(string options, jobject op) {
     } else {
         optionsList->push_back(option);
     }
+    if (!isTransforming) {
+        transform();
+    }
 }
 
 void HresTransformer::transform() {
     if (!optionsList->empty()) {
+        isTransforming = true;
         auto options = optionsList->front();
         optionsList->pop_front();
         if (options != nullptr) {
@@ -43,12 +47,14 @@ void HresTransformer::transform() {
             if (options->getType() == 1) {  //类型为图片
                 if (imageHresTransformer == nullptr) {
                     imageHresTransformer = make_shared<ImageHresTransformer>();
-                    imageHresTransformer->setListener(listenerManager);
+                    imageHresTransformer->setListener(this);
                 }
                 imageHresTransformer->transformOption(options);
                 imageHresTransformer->transform();
             }
         }
+    } else {
+        isTransforming = false;
     }
 }
 
@@ -56,6 +62,9 @@ void HresTransformer::release() {
     optionsList->clear();
     if (imageHresTransformer != nullptr) {
         imageHresTransformer->release();
+    }
+    if (listenerManager != nullptr) {
+        listenerManager = nullptr;
     }
 }
 
@@ -67,4 +76,18 @@ bool HresTransformer::removeOptions(string address) {
         }
     }
     return false;
+}
+
+void HresTransformer::filterRenderComplete(IOptions *options) {
+    if (listenerManager != nullptr) {
+        listenerManager->hresTransformComplete(options->getObj());
+    }
+    //抽取下一个进行转换
+    transform();
+}
+
+void HresTransformer::filterRenderFail(IOptions *options, string errorMsg) {
+    if (listenerManager != nullptr) {
+        listenerManager->hresTransformError(options->getObj(), errorMsg);
+    }
 }
