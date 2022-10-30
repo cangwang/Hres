@@ -25,7 +25,7 @@ jobject l = nullptr;
 
 extern "C" {
 
-JNIEXPORT void JNICALL HRES(nativeCreateTransformer)(
+JNIEXPORT void JNICALL HRES(nativeCreateTransformer) (
         JNIEnv *env,
         jobject instance, jstring tag, jstring optionParams) {
     HLOGV("nativeCreateTransformer");
@@ -40,6 +40,7 @@ JNIEXPORT void JNICALL HRES(nativeTransform) (
     HLOGV("nativeTransform");
     if (hresTransformer) {
         const char* optionsStr = env->GetStringUTFChars(options, JNI_FALSE);
+        op = env->NewGlobalRef(op);
         hresTransformer->addOption(string(optionsStr), op);
         env->ReleaseStringUTFChars(options, optionsStr);
     }
@@ -60,6 +61,7 @@ JNIEXPORT void JNICALL HRES(nativeSetListener)(
         l = env->NewGlobalRef(listener);
 
         ListenerManager* listenerManager = new ListenerManager(javaVm);
+        listenerManager->setEnv(env);
 
         listenerManager->setListener(l);
         hresTransformer->setListener(listenerManager);

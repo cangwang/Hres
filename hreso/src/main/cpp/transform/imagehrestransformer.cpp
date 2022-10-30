@@ -20,13 +20,15 @@ void ImageHresTransformer::setListener(FilterListener *listener) {
 
 void ImageHresTransformer::transformOption(IOptions *option) {
     if (filterController != nullptr) {
-        filterController->transformFilter(option);
+//        filterController->transformFilter(option);
+        filterController->transformFilterInThread(option);
     }
 }
 
 void ImageHresTransformer::transform() {
     if (filterController != nullptr) {
-        filterController->render();
+//        filterController->render();
+        filterController->renderInThread();
     }
 }
 

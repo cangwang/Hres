@@ -39,10 +39,23 @@ public:
         return scaleRatio;
     };
     virtual int getScaleWidth() {
-        return scaleWidth;
+        if (scaleRatio >= 1) {
+            return srcWidth * scaleRatio;
+        } else if (scaleWidth > 0) {
+            return scaleWidth;
+        } else {
+            return srcWidth;
+        }
+
     };
     virtual int getScaleHeight() {
-        return scaleHeight;
+        if (scaleRatio >= 1) {
+            return srcHeight * scaleRatio;
+        } else if (scaleHeight > 0) {
+            return scaleHeight;
+        } else {
+            return srcHeight;
+        }
     };
     virtual bool getFront() {
         return front;

@@ -4,16 +4,36 @@
 
 #include "simplefilter.h"
 
+SimpleFilter::SimpleFilter(): vertexArray(new GlFloatArray()), rgbaArray(new GlFloatArray()) {
+    initFilter();
+}
+
+SimpleFilter::~SimpleFilter() {
+    vertexArray = nullptr;
+    rgbaArray = nullptr;
+}
+
 void SimpleFilter::initFilter() {
-    VERTEX_SHADER = SHADER_STR(
-            in vec4 vPosition;
-            in vec4 vTexCoordinate;
-            out vec2 v_TexCoordinate;
-            void main() {
-                v_TexCoordinate = vec2(vTexCoordinate.x, vTexCoordinate.y);
-                gl_Position = vPosition;
-            }
-    );
+//    VERTEX_SHADER = SHADER_STR(
+//            in vec4 vPosition;
+//            in vec4 vTexCoordinate;
+//            out vec2 v_TexCoordinate;
+//            void main() {
+//                v_TexCoordinate = vec2(vTexCoordinate.x, vTexCoordinate.y);
+//                gl_Position = vPosition;
+//            }
+//    );
+
+    char VERTEX_SHADER[] =
+            "#version 300 es\n"
+            "in vec4 vPosition;\n"
+            "in vec4 vTexCoordinate;\n"
+            "out vec2 v_TexCoordinate;\n"
+            "\n"
+            "void main() {\n"
+            "v_TexCoordinate = vec2(vTexCoordinate.x, vTexCoordinate.y);\n"
+            "gl_Position = vPosition;\n"
+            "}";
 
 //    FRAGMENT_SHADER = SHADER_STR(
 //            ##version 300 es
@@ -27,15 +47,16 @@ void SimpleFilter::initFilter() {
 ////                gl_FragColor = vec4(1.0,0.2,0.5,1.0);
 //            }
 //    );
-    FRAGMENT_SHADER = "#version 300 es"
-                      "#extension GL_OES_EGL_image_external_essl3 : require"
-                      "precision mediump float;"
-                      "uniform sampler2D uTexture;"
-                      "in vec2 v_TexCoordinate;"
-                      "out vec4 gl_FragColor;"
-                      "void main () {"
-                      "gl_FragColor = texture2D(uTexture, v_TexCoordinate);"
-//                gl_FragColor = vec4(1.0,0.2,0.5,1.0);
+    char FRAGMENT_SHADER[] = "#version 300 es\n"
+//                      "#extension GL_OES_EGL_image_external_essl3 : require"
+                      "precision mediump float;\n"
+                      "uniform sampler2D uTexture;\n"
+                      "in vec2 v_TexCoordinate;\n"
+                      "out vec4 vFragColor;\n"
+                      "\n"
+                      "void main () {\n"
+                      "vFragColor = texture(uTexture, v_TexCoordinate);\n"
+//                      "vFragColor = vec4(1.0,0.2,0.5,1.0);\n"
                       "}";
     shaderProgram = ShaderUtil::createProgram(VERTEX_SHADER, FRAGMENT_SHADER);
     uTextureLocation = glGetUniformLocation(shaderProgram, "uTexture");
@@ -71,14 +92,25 @@ void SimpleFilter::clearFrame() {
 }
 
 void SimpleFilter::destroyFilter() {
-    VERTEX_SHADER.clear();
-    FRAGMENT_SHADER.clear();
+//    VERTEX_SHADER.clear();
+//    FRAGMENT_SHADER.clear();
 }
 
-void SimpleFilter::setOptions(IOptions *config) {
-//    vertexArray->setArray(VertexUtil::create(config->width, config->height, new PointRect(0, 0, config->width, config->height), vertexArray->array));
-//    float* rgba = TexCoordsUtil::create(config->width, config->height, new PointRect(0, 0, config->width, config->height), rgbaArray->array);
-//    rgbaArray->setArray(rgba);
+void SimpleFilter::setOptions(IOptions *options) {
+    if (options) {
+        textureId = options->textureId;
+        vertexArray->setArray(
+                VertexUtil::create(options->getScaleWidth(), options->getScaleHeight(),
+                                   new PointRect(0, 0, options->getScaleWidth(),
+                                                 options->getScaleHeight()), vertexArray->array));
+        float *rgba = TexCoordsUtil::create(options->getScaleWidth(), options->getScaleHeight(),
+                                            new PointRect(0, 0, options->getScaleWidth(),
+                                                          options->getScaleHeight()),
+                                            rgbaArray->array);
+        rgbaArray->setArray(rgba);
+    } else {
+        HLOGE("options is null");
+    }
 }
 
 void SimpleFilter::updateViewPort(int width, int height) {

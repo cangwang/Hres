@@ -73,7 +73,7 @@ void BilinearFilter::destroyFilter() {
     releaseTexture();
 }
 
-void BilinearFilter::setOptions(IOptions *config) {
+void BilinearFilter::setOptions(IOptions *option) {
 
 }
 
@@ -82,7 +82,7 @@ GLuint BilinearFilter::getExternalTexture() {
 }
 
 void BilinearFilter::releaseTexture() {
-    if (textureId > 0) {
+    if (textureId > -1) {
         glDeleteTextures(1, &textureId);
     }
 }

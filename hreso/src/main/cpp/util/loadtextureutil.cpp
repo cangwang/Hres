@@ -43,7 +43,7 @@ GLuint LoadTextureUtil::loadTextureFromFile(const char *fileName, int *w, int *h
     return textureHandler;
 }
 
-GLuint LoadTextureUtil::loadTextureFromFile(IOptions* option) {
+GLuint LoadTextureUtil::loadTextureFromOption(IOptions* option) {
     if (option == nullptr) {
         HLOGV("loadTextureFromFile option null");
         return -1;

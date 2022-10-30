@@ -13,6 +13,9 @@
 
 class SimpleFilter : public IFilter {
 public:
+    SimpleFilter();
+    ~SimpleFilter();
+
     void initFilter() override;
 
     void renderFrame() override;
@@ -47,8 +50,8 @@ private:
     int surfaceWidth = 0;
     int surfaceHeight = 0;
 
-    string VERTEX_SHADER;
-    string FRAGMENT_SHADER;
+//    string VERTEX_SHADER;
+//    string FRAGMENT_SHADER;
 };
 
 

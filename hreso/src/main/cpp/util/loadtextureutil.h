@@ -19,7 +19,7 @@ using namespace std;
 class LoadTextureUtil {
 public:
     static GLuint loadTextureFromFile(const char *fileName, int *w, int *h,int *n);
-    static GLuint loadTextureFromFile(IOptions* options);
+    static GLuint loadTextureFromOption(IOptions* options);
 };
 
 

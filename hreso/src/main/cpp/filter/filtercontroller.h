@@ -13,6 +13,10 @@
 #include <util/stb_image_write.h>
 #include <filter/filterlistener.h>
 #include <util/loadtextureutil.h>
+#include <stdio.h>
+#include <mutex>
+#include <util/threadpool.h>
+#include <thread>
 
 #define LOG_TAG "FilterController"
 #define HLOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
@@ -24,11 +28,14 @@ public:
     FilterController();
     ~FilterController();
     void transformFilter(IOptions* option);
+    void transformFilterInThread(IOptions* option);
     void setListener(FilterListener* listener);
     void save(IOptions* option);
     void render();
+    void renderInThread();
     void release();
 private:
+    mutex gMutex;
     shared_ptr<EGLCore> eglCore;
     IOptions* option;
     list<IFilter*> filterList;
@@ -36,16 +43,17 @@ private:
     GLuint pixelBuffer;
     unsigned char* saveImgData;
     long imgSize;
-    int imgWidth = -1;
-    int imgHeight = -1;
     int scaleImgWidth = -1;
     int scaleImgHeight = -1;
     FilterListener* listener;
+    ThreadPool* pool;
 
+    void readBuffer();
     void initPixelBuffer();
     void drawPixelBuffer();
     void destroyPixelBuffers();
-    bool saveImg(const string& saveFileAddress,unsigned char* data,int width,int height,int type);
+    bool saveImg(const string saveFileAddress,unsigned char* data,int width,int height,int type);
+    void checkGLError(std::string op);
 };
 
 

@@ -11,6 +11,7 @@
 #include <util/glfloatarray.h>
 #include <util/vertexutil.h>
 #include <util/texcoordsutil.h>
+#include <util/loadtextureutil.h>
 
 #define SHADER_STR(s) #s
 

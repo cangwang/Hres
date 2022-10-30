@@ -4,12 +4,16 @@
 
 #include "listenermanager.h"
 
+//https://www.cnblogs.com/zhujiabin/p/10596767.html 线程崩溃问题
+
 ListenerManager::~ListenerManager() {
     listener = nullptr;
     javaVM = nullptr;
+    env = nullptr;
 }
 
 void ListenerManager::hresTransformStart(jobject option) {
+    HLOGV("hresTransformStart");
     JNIEnv *env;
     bool isNeedDetach = false;
     if (!attachCurrentThread(env, isNeedDetach)) {
@@ -25,6 +29,7 @@ void ListenerManager::hresTransformStart(jobject option) {
 }
 
 void ListenerManager::hresTransformComplete(jobject option) {
+    HLOGV("hresTransformComplete");
     JNIEnv *env;
     bool isNeedDetach = false;
     if (!attachCurrentThread(env, isNeedDetach)) {
@@ -33,13 +38,17 @@ void ListenerManager::hresTransformComplete(jobject option) {
     jclass clazz_listener = env->GetObjectClass(listener);
     jmethodID methodId = env->GetMethodID(clazz_listener, "hresTransformComplete",
                                           "(Lcom/cangwang/hreso/bean/OptionParams;)V");
+//    jmethodID methodId = env->GetMethodID(clazz_listener, "hresTransformComplete",
+//                                          "()V");
     env->CallVoidMethod(listener, methodId, option);
+    env->DeleteGlobalRef(option);
     if (isNeedDetach) {
         javaVM->DetachCurrentThread();
     }
 }
 
 void ListenerManager::hresTransformError(jobject option, string errorMsg) {
+    HLOGV("hresTransformError %s", errorMsg.c_str());
     JNIEnv *env;
     bool isNeedDetach = false;
     if (!attachCurrentThread(env, isNeedDetach)) {
@@ -50,6 +59,7 @@ void ListenerManager::hresTransformError(jobject option, string errorMsg) {
     jmethodID methodId = env->GetMethodID(clazz_listener, "hresTransformError", "(Lcom/cangwang/hreso/bean/OptionParams;Ljava/lang/String;)V");
     env->CallVoidMethod(listener, methodId, option, jmsg);
     env->DeleteLocalRef(jmsg);
+    env->DeleteGlobalRef(option);
     if (isNeedDetach) {
         javaVM->DetachCurrentThread();
     }

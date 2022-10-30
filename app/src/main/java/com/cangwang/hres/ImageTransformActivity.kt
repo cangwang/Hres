@@ -1,7 +1,9 @@
 package com.cangwang.hres
 
 import android.graphics.BitmapFactory
+import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.util.Log
 import android.view.Window
 import android.view.WindowManager
@@ -33,7 +35,10 @@ class ImageTransformActivity: AppCompatActivity() {
 
             override fun hresTransformComplete(option: OptionParams) {
                 val desBitmap = BitmapFactory.decodeFile(option.saveAddress)
-                btn_album_transform.setImageBitmap(desBitmap)
+//                btn_album_transform.setImageBitmap(desBitmap)
+            }
+
+            override fun hresTransformComplete() {
             }
 
             override fun hresTransformError(option: OptionParams, errorTag: String) {
@@ -43,6 +48,12 @@ class ImageTransformActivity: AppCompatActivity() {
         val option = OptionParams()
         option.address = selectPaths.path
         option.scaleRatio = 1.0f
+        val saveAddress = if(Build.BRAND == "Xiaomi"){ // 小米手机
+            Environment.getExternalStorageDirectory().path +"/DCIM/Camera/"+System.currentTimeMillis()+".png"
+        }else{  // Meizu 、Oppo
+            Environment.getExternalStorageDirectory().path +"/DCIM/"+System.currentTimeMillis()+".png"
+        }
+        option.saveAddress = saveAddress
         HresJniUtil.nativeTransform(option.toJson(), option)
     }
 
