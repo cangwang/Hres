@@ -16,6 +16,7 @@ import java.util.ArrayList
 class MainActivity : AppCompatActivity() {
 
     private var CAMERA_PERMISSION_REQ = 1
+    private var clickType = 1 //1 直接转换 2 图片显示
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,6 +31,22 @@ class MainActivity : AppCompatActivity() {
 
     fun initView() {
         button_album.setOnClickListener {
+            clickType = 1
+            PickPhotoView.Builder(this@MainActivity)
+                .setPickPhotoSize(1)
+                .setClickSelectable(true)             // click one image immediately close and return image
+                .setShowCamera(true)
+                .setHasPhotoSize(7)
+                .setAllPhotoSize(10)
+                .setSpanCount(3)
+                .setLightStatusBar(false)
+                .setShowGif(false)                    // is show gif
+                .setShowVideo(false)
+                .start()
+        }
+
+        button_image_show.setOnClickListener {
+            clickType = 2
             PickPhotoView.Builder(this@MainActivity)
                 .setPickPhotoSize(1)
                 .setClickSelectable(true)             // click one image immediately close and return image
@@ -63,7 +80,18 @@ class MainActivity : AppCompatActivity() {
         if (requestCode == PickConfig.PICK_PHOTO_DATA) {
             val selectPaths = data.getSerializableExtra(PickConfig.INTENT_IMG_LIST_SELECT) as ArrayList<SelectModel>
             if (selectPaths.size>0) {
-                val intent = Intent(this, ImageTransformActivity::class.java)
+                val intent = when (clickType) {
+                    1 -> {
+                        Intent(this, ImageTransformActivity::class.java)
+                    }
+                    2 -> {
+                        Intent(this, ImageShowActivity::class.java)
+                    }
+                    else -> {
+                        Intent(this, ImageTransformActivity::class.java)
+                    }
+                }
+
                 intent.putExtra(PickConfig.INTENT_IMG_LIST_SELECT, selectPaths[0])
                 startActivity(intent)
             }else{

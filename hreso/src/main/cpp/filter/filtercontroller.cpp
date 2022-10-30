@@ -33,10 +33,29 @@ FilterController::~FilterController() {
     }
 }
 
+void FilterController::setWindow(ANativeWindow *window) {
+    if (eglCore == nullptr) {
+        eglCore = make_shared<EGLCore>();
+        eglCore->start(window);
+    }
+//
+//    unique_lock<mutex> lock(gMutex);
+//    auto startWindow = [&](ANativeWindow *window) -> void
+//    {
+//        if (eglCore == nullptr) {
+//            eglCore = make_shared<EGLCore>();
+//            eglCore->start(window);
+//        }
+//    };
+//    if (pool != nullptr) {
+//        pool->submit(startWindow, window);
+//    }
+}
+
 void FilterController::transformFilter(IOptions *option) {
     if (eglCore == nullptr) {
         eglCore = make_shared<EGLCore>();
-        eglCore->start();
+        eglCore->start(nullptr);
     }
     if (option == nullptr) {
         HLOGV("transformFilter option nullptr");
@@ -56,25 +75,27 @@ void FilterController::transformFilter(IOptions *option) {
 }
 
 void FilterController::transformFilterInThread(IOptions *option) {
-    //加锁
-    unique_lock<mutex> lock(gMutex);
-    auto transformFilterWork = [&](IOptions* o) -> void
-    {
-        transformFilter(o);
-    };
-    if (pool != nullptr) {
-        pool->submit(transformFilterWork, option);
-    }
+    transformFilter(option);
+
+//    //加锁
+//    unique_lock<mutex> lock(gMutex);
+//    auto transformFilterWork = [&](IOptions* o) -> void
+//    {
+//        transformFilter(o);
+//    };
+//    if (pool != nullptr) {
+//        pool->submit(transformFilterWork, option);
+//    }
 }
 
 void FilterController::render() {
     if (eglCore == nullptr) {
         eglCore = make_shared<EGLCore>();
-        eglCore->start();
+        eglCore->start(nullptr);
     }
-    glClearColor(0, 0, 0, 0);
-    glClear(GL_COLOR_BUFFER_BIT);
-    initPixelBuffer();
+//    glClearColor(0, 0, 0, 0);
+//    glClear(GL_COLOR_BUFFER_BIT);
+//    initPixelBuffer();
     if (!filterList.empty()) {
         for (IFilter* filter: filterList) {
             filter->renderFrame();
@@ -91,7 +112,7 @@ void FilterController::render() {
         eglCore->swapBuffer();
     }
 //    drawPixelBuffer();
-    readBuffer();
+//    readBuffer();
     if (option != nullptr) {  //保存图片
         return save(option);
     }
@@ -99,15 +120,16 @@ void FilterController::render() {
 }
 
 void FilterController::renderInThread() {
-    //加锁
-//    unique_lock<mutex> lock(gMutex);
-    auto renderWork = [&]() -> void
-    {
-        render();
-    };
-    if (pool != nullptr) {
-        pool->submit(renderWork);
-    }
+    render();
+//    //加锁
+////    unique_lock<mutex> lock(gMutex);
+//    auto renderWork = [&]() -> void
+//    {
+//        render();
+//    };
+//    if (pool != nullptr) {
+//        pool->submit(renderWork);
+//    }
 }
 
 void FilterController::save(IOptions* option) {

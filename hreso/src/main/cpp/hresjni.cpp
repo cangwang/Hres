@@ -27,10 +27,19 @@ extern "C" {
 
 JNIEXPORT void JNICALL HRES(nativeCreateTransformer) (
         JNIEnv *env,
-        jobject instance, jstring tag, jstring optionParams) {
+        jobject instance, jstring tag, jstring optionParams, jobject surface) {
     HLOGV("nativeCreateTransformer");
     if (hresTransformer == nullptr) {
         hresTransformer = make_unique<HresTransformer>();
+        if (surface != nullptr) {
+            //创建window
+            ANativeWindow *window = ANativeWindow_fromSurface(env, surface);
+            if (window == nullptr) {
+                ELOGE("window is nullptr");
+            } else {
+                hresTransformer->setWindow(window);
+            }
+        }
     }
 }
 

@@ -27,6 +27,7 @@ class FilterController {
 public:
     FilterController();
     ~FilterController();
+    void setWindow(ANativeWindow* window);
     void transformFilter(IOptions* option);
     void transformFilterInThread(IOptions* option);
     void setListener(FilterListener* listener);

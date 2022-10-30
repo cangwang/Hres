@@ -16,7 +16,7 @@ public:
 
     ~EGLCore();
 
-    void start();
+    void start(ANativeWindow* window);
 
     EGLConfig chooseConfig();
 

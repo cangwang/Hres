@@ -19,7 +19,7 @@ EGLCore::~EGLCore() {
     mContext = EGL_NO_CONTEXT;
 }
 
-void EGLCore::start() {
+void EGLCore::start(ANativeWindow* window) {
     mDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
     if (mDisplay == EGL_NO_DISPLAY) {
         HLOGE("eglGetDisplay failed: %d", eglGetError());
@@ -43,12 +43,17 @@ void EGLCore::start() {
         HLOGE("eglGetConfigAttrib failed: %d",eglGetError());
     }
     ELOGD("eglGetConfigAttrib success");
-//    ANativeWindow_setBuffersGeometry(window,0,0,format);
-    ELOGD("setBuffersGeometry success");
+    if (window) {
+        ANativeWindow_setBuffersGeometry(window, 0, 0, format);
+        ELOGD("setBuffersGeometry success");
+    }
     //创建On-Screen 渲染区域
-//    mSurface = eglCreateWindowSurface(mDisplay,config,window,0);
-    //创建离屏渲染Surface
-    mSurface = eglCreatePbufferSurface(mDisplay, config, 0);
+    if (window) {
+        mSurface = eglCreateWindowSurface(mDisplay,config,window,0);
+    } else {
+        //创建离屏渲染Surface
+        mSurface = eglCreatePbufferSurface(mDisplay, config, 0);
+    }
     if (mSurface == nullptr || mSurface == EGL_NO_SURFACE){
         EGLint error = eglGetError();
         HLOGE("eglCreatePbufferSurface failed: %d", error);

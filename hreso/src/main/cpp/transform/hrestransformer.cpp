@@ -16,6 +16,13 @@ HresTransformer::~HresTransformer() {
     listenerManager = nullptr;
 }
 
+void HresTransformer::setWindow(ANativeWindow *window) {
+    if (imageHresTransformer == nullptr) {
+        imageHresTransformer = make_shared<ImageHresTransformer>();
+    }
+    imageHresTransformer->setWindow(window);
+}
+
 void HresTransformer::setListener(ListenerManager* listenerManager) {
    this->listenerManager = listenerManager;
 }
@@ -47,8 +54,8 @@ void HresTransformer::transform() {
             if (options->getType() == 1) {  //类型为图片
                 if (imageHresTransformer == nullptr) {
                     imageHresTransformer = make_shared<ImageHresTransformer>();
-                    imageHresTransformer->setListener(this);
                 }
+                imageHresTransformer->setListener(this);
                 imageHresTransformer->transformOption(options);
                 imageHresTransformer->transform();
             }

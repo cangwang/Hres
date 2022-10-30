@@ -15,6 +15,7 @@ class ImageHresTransformer {
 public:
     ImageHresTransformer();
     ~ImageHresTransformer();
+    void setWindow(ANativeWindow* window);
     void transformOption(IOptions* options);
     void setListener(FilterListener* listener);
     void transform();

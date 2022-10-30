@@ -12,6 +12,13 @@ ImageHresTransformer::~ImageHresTransformer() {
 
 }
 
+void ImageHresTransformer::setWindow(ANativeWindow *window) {
+    if (filterController != nullptr) {
+        filterController->setWindow(window);
+    }
+}
+
+
 void ImageHresTransformer::setListener(FilterListener *listener) {
     if (filterController != nullptr) {
         filterController->setListener(listener);

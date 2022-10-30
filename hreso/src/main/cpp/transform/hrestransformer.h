@@ -24,6 +24,7 @@ class HresTransformer: FilterListener {
 public:
     HresTransformer();
     ~HresTransformer();
+    void setWindow(ANativeWindow* window);
     void addOption(string options, jobject op);
     void transform();
     void release();

@@ -1,10 +1,13 @@
 package com.cangwang.hres
 
 import android.graphics.BitmapFactory
+import android.graphics.SurfaceTexture
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.util.Log
+import android.view.Surface
+import android.view.TextureView
 import android.view.Window
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
@@ -13,21 +16,39 @@ import com.cangwang.hreso.impl.HresListener
 import com.cangwang.hreso.util.HresJniUtil
 import com.werb.pickphotoview.model.SelectModel
 import com.werb.pickphotoview.util.PickConfig
-import kotlinx.android.synthetic.main.activity_album.*
+import kotlinx.android.synthetic.main.activity_show.*
 
-class ImageTransformActivity: AppCompatActivity() {
-
-    private val TAG = ImageTransformActivity::class.java.simpleName
-
+class ImageShowActivity: AppCompatActivity(), SurfaceTexture.OnFrameAvailableListener,  TextureView.SurfaceTextureListener {
+    val TAG = ImageShowActivity::class.java.simpleName
+    var selectPaths: SelectModel? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN)
         requestWindowFeature(Window.FEATURE_NO_TITLE)
-        setContentView(R.layout.activity_album)
-        val selectPaths = intent.getSerializableExtra(PickConfig.INTENT_IMG_LIST_SELECT) as SelectModel
-        val srcBitmap = BitmapFactory.decodeFile(selectPaths.path)
-        btn_album_src.setImageBitmap(srcBitmap)
-        HresJniUtil.nativeCreateTransformer("image", "", null)
+        setContentView(R.layout.activity_show)
+
+        selectPaths = intent.getSerializableExtra(PickConfig.INTENT_IMG_LIST_SELECT) as SelectModel
+        textureView.surfaceTextureListener = this
+    }
+
+    override fun onFrameAvailable(surfaceTexture: SurfaceTexture?) {
+//        surfaceTexture?.updateTexImage()
+
+//        val option = OptionParams()
+//        option.address = selectPaths!!.path
+//        option.scaleRatio = 1.0f
+//        val saveAddress = if(Build.BRAND == "Xiaomi"){ // 小米手机
+//            Environment.getExternalStorageDirectory().path +"/DCIM/Camera/"+System.currentTimeMillis()+".png"
+//        }else{  // Meizu 、Oppo
+//            Environment.getExternalStorageDirectory().path +"/DCIM/"+System.currentTimeMillis()+".png"
+//        }
+//        option.saveAddress = saveAddress
+//        HresJniUtil.nativeTransform(option.toJson(), option)
+    }
+
+    override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
+        val s = Surface(surface)
+        HresJniUtil.nativeCreateTransformer("showImage", "", s)
         HresJniUtil.nativeSetListener(object : HresListener {
             override fun hresTransformStart(option: OptionParams) {
 
@@ -45,8 +66,9 @@ class ImageTransformActivity: AppCompatActivity() {
                 Log.e(TAG, "$errorTag $option")
             }
         })
+        surface.setOnFrameAvailableListener(this@ImageShowActivity)
         val option = OptionParams()
-        option.address = selectPaths.path
+        option.address = selectPaths!!.path
         option.scaleRatio = 1.0f
         val saveAddress = if(Build.BRAND == "Xiaomi"){ // 小米手机
             Environment.getExternalStorageDirectory().path +"/DCIM/Camera/"+System.currentTimeMillis()+".png"
@@ -54,12 +76,20 @@ class ImageTransformActivity: AppCompatActivity() {
             Environment.getExternalStorageDirectory().path +"/DCIM/"+System.currentTimeMillis()+".png"
         }
         option.saveAddress = saveAddress
+        surface.updateTexImage()
         HresJniUtil.nativeTransform(option.toJson(), option)
     }
 
+    override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture, width: Int, height: Int) {
 
-    override fun onDestroy() {
-        super.onDestroy()
+    }
+
+    override fun onSurfaceTextureDestroyed(surface: SurfaceTexture): Boolean {
         HresJniUtil.nativeTransformRelease()
+        return true
+    }
+
+    override fun onSurfaceTextureUpdated(surface: SurfaceTexture) {
+
     }
 }
