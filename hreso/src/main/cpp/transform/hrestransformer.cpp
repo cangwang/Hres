@@ -103,4 +103,6 @@ void HresTransformer::filterRenderFail(IOptions *options, string errorMsg) {
     if (listenerManager != nullptr) {
         listenerManager->hresTransformError(options->getObj(), errorMsg);
     }
+    //抽取下一个进行转换
+    transform();
 }

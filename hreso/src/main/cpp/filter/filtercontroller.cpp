@@ -48,6 +48,12 @@ void FilterController::transformFilter(IOptions *option) {
         eglCore = make_shared<EGLCore>();
         eglCore->start(nullptr);
     }
+
+    if (option != nullptr) {
+        scaleImgWidth = option->getScaleWidth();
+        scaleImgHeight = option->getScaleHeight() ;
+    }
+
     if (option == nullptr) {
         HLOGV("transformFilter option nullptr");
         return;
@@ -61,9 +67,14 @@ void FilterController::transformFilter(IOptions *option) {
         }
         filterName = option->getFilterType();
     }
+    if (fbFilter == nullptr) {
+        fbFilter = make_shared<FbFilter>();
+        fbFilter->setListener(listener);
+        fbFilter->setOptions(option);
+    }
 
     this->option = option;
-    initPixelBuffer();
+//    initPixelBuffer();
 }
 
 void FilterController::transformFilterInThread(IOptions *option) {
@@ -101,8 +112,14 @@ void FilterController::render() {
     glClear(GL_COLOR_BUFFER_BIT);
 
     if (!filterList.empty()) {
+        if (fbFilter != nullptr) {
+            fbFilter->enableFramebuffer();
+        }
         for (IFilter* filter: filterList) {
             filter->renderFrame();
+        }
+        if (fbFilter != nullptr) {
+            fbFilter->disableFrameBuffer();
         }
     } else {
         HLOGE("filterList is empty");
@@ -111,6 +128,10 @@ void FilterController::render() {
         }
 //        return "filterList is empty";
     }
+    if (fbFilter != nullptr) {
+        fbFilter->renderFrame();
+    }
+
     glFlush();
     if (eglCore != nullptr) {
         eglCore->swapBuffer();
@@ -257,19 +278,6 @@ void FilterController::initPixelBuffer() {
     destroyPixelBuffers();
     HLOGV("initPixelBuffer");
     pixelBuffer = -1;
-
-    if (option != nullptr) {
-        if (option->getScaleRatio() != 1) {
-            scaleImgWidth = option->srcWidth * option->getScaleRatio();
-            scaleImgHeight = option->srcHeight * option->getScaleRatio();
-        } else if (option->getScaleWidth() > 0 && option->getScaleHeight() > 0) {
-            scaleImgWidth = option->getScaleWidth();
-            scaleImgHeight = option->getScaleHeight();
-        } else {
-            scaleImgWidth = option->srcWidth;
-            scaleImgHeight = option->srcHeight;
-        }
-    }
 
     int align = 128;//128字节对齐
 //    imgSize = ((scaleImgWidth * 4 + (align - 1)) & ~(align - 1))* scaleImgHeight;

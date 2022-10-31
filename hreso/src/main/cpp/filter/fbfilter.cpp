@@ -4,12 +4,16 @@
 
 #include "fbfilter.h"
 
-FbFilter::FbFilter() {
+FbFilter::FbFilter():pool(nullptr) {
     initFilter();
 }
 
 FbFilter::~FbFilter() {
     destroyFilter();
+    if (pool) {
+        pool->shutdown();
+        pool = nullptr;
+    }
 }
 
 void FbFilter::initFilter() {
@@ -47,7 +51,7 @@ void FbFilter::initFilter() {
     rgbaArray = make_shared<GlFloatArray>();
 }
 
-void FbFilter::renderFrame(int frameIndex) {
+void FbFilter::renderFrame() {
     if (fboTextureId != -1) {
         glUseProgram(shaderProgram);
         vertexArray->setVertexAttribPointer(positionLocation);
@@ -65,8 +69,12 @@ void FbFilter::renderFrame(int frameIndex) {
         //     GLenum dstAlpha);
         glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        drawPixelBuffer();
         //关闭混合
         glDisable(GL_BLEND);
+        if (option != nullptr) {
+            saveInThread(option);
+        }
     }
 }
 
@@ -75,17 +83,19 @@ void FbFilter::clearFrame() {
 }
 
 void FbFilter::destroyFilter() {
-
+    releaseTexture();
+    destroyPixelBuffers();
 }
 
-void FbFilter::setoptions(IOptions *options) {
+void FbFilter::setOptions(IOptions *options) {
     if (options != nullptr) {
+        this->option = options;
         glGenFramebuffers(1, &fboId);
 
         glBindFramebuffer(GL_FRAMEBUFFER, fboId);
         glBindTexture(GL_TEXTURE_2D, fboTextureId);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,GL_TEXTURE_2D, fboTextureId, 0);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, surfaceWidth, surfaceHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, options->getScaleWidth(), options->getScaleHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
         if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
             ELOGE("initFrameBuffer framebuffer init fail");
             return;
@@ -103,6 +113,7 @@ void FbFilter::setoptions(IOptions *options) {
                                                       options->getScaleHeight()),
                                         rgbaArray->array);
     rgbaArray->setArray(rgba);
+    initPixelBuffer();
 }
 
 void FbFilter::updateViewPort(int width, int height) {
@@ -116,8 +127,17 @@ GLuint FbFilter::getExternalTexture() {
 }
 
 void FbFilter::releaseTexture() {
-    glDeleteTextures(1, &fboTextureId);
-    glDeleteFramebuffers(1, &fboId);
+    if (fboTextureId > 0) {
+        glDeleteTextures(1, &fboTextureId);
+    }
+    if (fboId > 0) {
+        glDeleteFramebuffers(1, &fboId);
+    }
+    option = nullptr;
+    if (saveImgData) {
+        memset(saveImgData, 0, imgSize);
+        saveImgData = nullptr;
+    }
 }
 
 void FbFilter::swapBuffers() {
@@ -134,4 +154,146 @@ void FbFilter::disableFrameBuffer() {
     if (fboId != -1) {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
+}
+
+void FbFilter::initPixelBuffer() {
+    destroyPixelBuffers();
+    HLOGV("initPixelBuffer");
+    pixelBuffer = -1;
+
+    int align = 128;//128字节对齐
+    imgSize = ((option->getScaleWidth() * 4 + (align - 1)) & ~(align - 1)) * option->getScaleHeight();
+//    imgSize = option->getScaleWidth() * option->getScaleHeight() * 4;
+
+    glGenBuffers(1, &pixelBuffer);
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, pixelBuffer);
+    glBufferData(GL_PIXEL_PACK_BUFFER, imgSize, nullptr, GL_STATIC_READ);
+}
+
+void FbFilter::drawPixelBuffer() {
+    HLOGV("drawPixelBuffer");
+    if (pixelBuffer < 0) {
+        HLOGE("pixelBuffer not init");
+        return;
+    }
+    if (option != nullptr && option->getScaleWidth() > 0 && option->getScaleHeight() > 0) {
+        glBindBuffer(GL_PIXEL_PACK_BUFFER, pixelBuffer);
+        glReadPixels(0, 0, option->getScaleWidth(), option->getScaleHeight(), GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+
+        if (imgSize > 0) {
+            HLOGV("imgSize = %ld",  imgSize);
+            saveImgData = (unsigned char *) glMapBufferRange(GL_PIXEL_PACK_BUFFER, 0, imgSize,
+                                                             GL_MAP_READ_BIT);
+        } else {
+            HLOGE("imgSize = 0");
+        }
+        glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+        //解除绑定PBO
+        glBindBuffer(GL_PIXEL_PACK_BUFFER, GL_NONE);
+    } else {
+        HLOGE("scaleImageWith or scaleImageHeight = 0");
+        return;
+    }
+}
+
+void FbFilter::saveInThread(IOptions* option) {
+//    save(option);
+    if (pool == nullptr) {
+        pool = new ThreadPool(1);
+        pool->init();
+    }
+    auto saveWork = [&](IOptions *options)->void {
+        save(options);
+    };
+    if (pool != nullptr) {
+        pool->submit(saveWork, option);
+    }
+}
+
+void FbFilter::save(IOptions* option) {
+    string address;
+    if (option != nullptr) {
+        if (option->getSaveAddress().empty()) {
+            HLOGV("saveAddress is null, use origin address");
+            address = option->getAddress();
+        } else {
+            address = option->getSaveAddress();
+        }
+        if (option->getScaleWidth() > 0 && option->getScaleHeight() > 0) {
+            bool result = saveImg(address, saveImgData, option->getScaleWidth(),
+                                  option->getScaleHeight(),
+                                  option->srcChannel);
+
+            if (listener != nullptr) {
+                if (result) {
+                    listener->filterRenderComplete(option);
+                } else {
+                    listener->filterRenderFail(option, string("saveImage fail"));
+                }
+            }
+
+//        if (result) {
+//            return nullptr;
+//        } else {
+//            return "saveImage fail";
+//        }
+        } else {
+            if (listener != nullptr) {
+                listener->filterRenderFail(option, string("scaleImgWidth || scaleImgHeight = 0"));
+            }
+//        return "scaleImgWidth || scaleImgHeight = 0";
+        }
+    }
+}
+
+bool FbFilter::saveImg(const string saveFileAddress,unsigned char* data,int width,int height, int channel) {
+//    FILE *file = fopen(saveFileAddress.c_str(), "wb+");
+//    if (file == nullptr) {
+//        return false;
+//    }
+
+    if (data == nullptr) {
+        HLOGE("saveImg data is null");
+        return false;
+    }
+
+    //屏幕到文件保存需要使用
+    stbi_flip_vertically_on_write(1);
+    //保存图片到本地文件
+//    if (channel == 3) {
+//        if (stbi_write_jpg(saveFileAddress.c_str(), width, height, channel, data, 0)) {
+//            HLOGV("save address = %s success", saveFileAddress.c_str());
+////            free(data);
+//            memset(saveImgData, 0, imgSize);
+//            return true;
+//        } else {
+////            free(data);
+//            memset(saveImgData, 0, imgSize);
+//            HLOGE("save fail address = %s fail", saveFileAddress.c_str());
+//            return false;
+//        }
+//    } else if (channel == 4) {
+    if (stbi_write_png(saveFileAddress.c_str(), width, height, 4, data, 0)) {
+        HLOGV("save address = %s success", saveFileAddress.c_str());
+//            free(data);
+        memset(saveImgData, 0, imgSize);
+        return true;
+    } else {
+//            free(data);
+        memset(saveImgData, 0, imgSize);
+        HLOGE("save fail address = %s fail", saveFileAddress.c_str());
+        return false;
+    }
+//    }
+}
+
+void FbFilter::destroyPixelBuffers() {
+    if (pixelBuffer > 0) {
+        HLOGV("destroyPixelBuffers");
+        glDeleteTextures(1, &pixelBuffer);
+    }
+}
+
+void FbFilter::setListener(FilterListener *listener) {
+    this->listener = listener;
 }
