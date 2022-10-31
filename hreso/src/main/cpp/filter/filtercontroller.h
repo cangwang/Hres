@@ -17,6 +17,7 @@
 #include <mutex>
 #include <util/threadpool.h>
 #include <thread>
+#include "fbfilter.h"
 
 #define LOG_TAG "FilterController"
 #define HLOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
@@ -52,6 +53,8 @@ private:
     FilterListener* listener;
     ThreadPool* pool;
     ANativeWindow* window;
+
+    shared_ptr<FbFilter> fbFilter;
 
     void readBuffer();
     void initPixelBuffer();
