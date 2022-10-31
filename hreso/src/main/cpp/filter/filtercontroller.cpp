@@ -7,26 +7,12 @@
 
 
 
-FilterController::FilterController(): pool(new ThreadPool(1)) {
+FilterController::FilterController(): pool(new ThreadPool(1)), window(nullptr) {
     pool->init();
 }
 
 FilterController::~FilterController() {
-    filterList.clear();
-    destroyPixelBuffers();
-    option = nullptr;
-    if (saveImgData) {
-        memset(saveImgData, 0, imgSize);
-        saveImgData = nullptr;
-    }
-    listener = nullptr;
-
-    if (eglCore) {
-        eglCore->release();
-    }
-    if (saveImgData) {
-        saveImgData = nullptr;
-    }
+    release();
     if (pool) {
         pool->shutdown();
         pool = nullptr;
@@ -34,22 +20,27 @@ FilterController::~FilterController() {
 }
 
 void FilterController::setWindow(ANativeWindow *window) {
-    if (eglCore == nullptr) {
-        eglCore = make_shared<EGLCore>();
-        eglCore->start(window);
-    }
-//
-//    unique_lock<mutex> lock(gMutex);
-//    auto startWindow = [&](ANativeWindow *window) -> void
-//    {
-//        if (eglCore == nullptr) {
-//            eglCore = make_shared<EGLCore>();
-//            eglCore->start(window);
-//        }
-//    };
-//    if (pool != nullptr) {
-//        pool->submit(startWindow, window);
+//    if (eglCore == nullptr) {
+//        eglCore = make_shared<EGLCore>();
+//        eglCore->start(window);
 //    }
+    this->window = window;
+    unique_lock<mutex> lock(gMutex);
+    auto startWindow = [&](ANativeWindow *window) -> void
+    {
+        if (eglCore == nullptr) {
+            eglCore = make_shared<EGLCore>();
+            eglCore->start(window);
+        }
+    };
+    if (pool != nullptr) {
+        pool->submit(startWindow, window);
+    }
+}
+
+void FilterController::updateViewPoint(int width, int height) {
+    this->surfaceWidth = width;
+    this->surfaceHeight = height;
 }
 
 void FilterController::transformFilter(IOptions *option) {
@@ -72,20 +63,21 @@ void FilterController::transformFilter(IOptions *option) {
     }
 
     this->option = option;
+    initPixelBuffer();
 }
 
 void FilterController::transformFilterInThread(IOptions *option) {
-    transformFilter(option);
+//    transformFilter(option);
 
-//    //加锁
-//    unique_lock<mutex> lock(gMutex);
-//    auto transformFilterWork = [&](IOptions* o) -> void
-//    {
-//        transformFilter(o);
-//    };
-//    if (pool != nullptr) {
-//        pool->submit(transformFilterWork, option);
-//    }
+    //加锁
+    unique_lock<mutex> lock(gMutex);
+    auto transformFilterWork = [&](IOptions* o) -> void
+    {
+        transformFilter(o);
+    };
+    if (pool != nullptr) {
+        pool->submit(transformFilterWork, option);
+    }
 }
 
 void FilterController::render() {
@@ -93,9 +85,21 @@ void FilterController::render() {
         eglCore = make_shared<EGLCore>();
         eglCore->start(nullptr);
     }
-//    glClearColor(0, 0, 0, 0);
-//    glClear(GL_COLOR_BUFFER_BIT);
-//    initPixelBuffer();
+    //设置视屏大小
+    if (this->window != nullptr) {
+        if(surfaceWidth > 0 && surfaceHeight > 0) {
+            glViewport(0, 0, surfaceWidth, surfaceHeight);
+        } else {
+            HLOGE("render glViewport surfaceWidth || surfaceHeight = 0");
+        }
+    } else if (scaleImgWidth > 0 && scaleImgHeight > 0) {
+        glViewport(0, 0, scaleImgWidth, scaleImgHeight);
+    } else {
+        HLOGE("render no glViewport");
+    }
+    glClearColor(0, 0, 0, 0);
+    glClear(GL_COLOR_BUFFER_BIT);
+
     if (!filterList.empty()) {
         for (IFilter* filter: filterList) {
             filter->renderFrame();
@@ -107,12 +111,12 @@ void FilterController::render() {
         }
 //        return "filterList is empty";
     }
-
+    glFlush();
     if (eglCore != nullptr) {
         eglCore->swapBuffer();
     }
 //    drawPixelBuffer();
-//    readBuffer();
+    readBuffer();
     if (option != nullptr) {  //保存图片
         return save(option);
     }
@@ -120,16 +124,16 @@ void FilterController::render() {
 }
 
 void FilterController::renderInThread() {
-    render();
-//    //加锁
-////    unique_lock<mutex> lock(gMutex);
-//    auto renderWork = [&]() -> void
-//    {
-//        render();
-//    };
-//    if (pool != nullptr) {
-//        pool->submit(renderWork);
-//    }
+//    render();
+    //加锁
+    unique_lock<mutex> lock(gMutex);
+    auto renderWork = [&]() -> void
+    {
+        render();
+    };
+    if (pool != nullptr) {
+        pool->submit(renderWork);
+    }
 }
 
 void FilterController::save(IOptions* option) {
@@ -188,6 +192,11 @@ bool FilterController::saveImg(const string saveFileAddress,unsigned char* data,
 //        return false;
 //    }
 
+    if (data == nullptr) {
+        HLOGE("saveImg data is null");
+        return false;
+    }
+
     //屏幕到文件保存需要使用
     stbi_flip_vertically_on_write(1);
     //保存图片到本地文件
@@ -223,9 +232,6 @@ void FilterController::release() {
     glClearColor(0, 0, 0, 0);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    if (eglCore != nullptr) {
-        eglCore->release();
-    }
     if (!filterList.empty()) {
         for (IFilter* filter: filterList) {
             filter->releaseTexture();
@@ -239,6 +245,11 @@ void FilterController::release() {
     if (saveImgData) {
         memset(saveImgData, 0, imgSize);
         saveImgData = nullptr;
+    }
+
+    if (eglCore != nullptr) {
+        eglCore->release();
+        eglCore = nullptr;
     }
 }
 
@@ -297,8 +308,8 @@ void FilterController::drawPixelBuffer() {
 }
 
 void FilterController::destroyPixelBuffers() {
-    HLOGV("destroyPixelBuffers");
     if (pixelBuffer > 0) {
+        HLOGV("destroyPixelBuffers");
         glDeleteTextures(1, &pixelBuffer);
     }
 }

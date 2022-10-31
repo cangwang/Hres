@@ -18,7 +18,7 @@ import com.werb.pickphotoview.model.SelectModel
 import com.werb.pickphotoview.util.PickConfig
 import kotlinx.android.synthetic.main.activity_show.*
 
-class ImageShowActivity: AppCompatActivity(), SurfaceTexture.OnFrameAvailableListener,  TextureView.SurfaceTextureListener {
+class ImageShowActivity: AppCompatActivity(), TextureView.SurfaceTextureListener {
     val TAG = ImageShowActivity::class.java.simpleName
     var selectPaths: SelectModel? = null
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -31,24 +31,11 @@ class ImageShowActivity: AppCompatActivity(), SurfaceTexture.OnFrameAvailableLis
         textureView.surfaceTextureListener = this
     }
 
-    override fun onFrameAvailable(surfaceTexture: SurfaceTexture?) {
-//        surfaceTexture?.updateTexImage()
-
-//        val option = OptionParams()
-//        option.address = selectPaths!!.path
-//        option.scaleRatio = 1.0f
-//        val saveAddress = if(Build.BRAND == "Xiaomi"){ // 小米手机
-//            Environment.getExternalStorageDirectory().path +"/DCIM/Camera/"+System.currentTimeMillis()+".png"
-//        }else{  // Meizu 、Oppo
-//            Environment.getExternalStorageDirectory().path +"/DCIM/"+System.currentTimeMillis()+".png"
-//        }
-//        option.saveAddress = saveAddress
-//        HresJniUtil.nativeTransform(option.toJson(), option)
-    }
 
     override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
         val s = Surface(surface)
         HresJniUtil.nativeCreateTransformer("showImage", "", s)
+        HresJniUtil.nativeUpdateViewPoint(width, height)
         HresJniUtil.nativeSetListener(object : HresListener {
             override fun hresTransformStart(option: OptionParams) {
 
@@ -57,16 +44,14 @@ class ImageShowActivity: AppCompatActivity(), SurfaceTexture.OnFrameAvailableLis
             override fun hresTransformComplete(option: OptionParams) {
                 val desBitmap = BitmapFactory.decodeFile(option.saveAddress)
 //                btn_album_transform.setImageBitmap(desBitmap)
-            }
-
-            override fun hresTransformComplete() {
+                textureView.invalidate()
             }
 
             override fun hresTransformError(option: OptionParams, errorTag: String) {
                 Log.e(TAG, "$errorTag $option")
             }
         })
-        surface.setOnFrameAvailableListener(this@ImageShowActivity)
+//        surface.setOnFrameAvailableListener(this@ImageShowActivity)
         val option = OptionParams()
         option.address = selectPaths!!.path
         option.scaleRatio = 1.0f
@@ -76,7 +61,7 @@ class ImageShowActivity: AppCompatActivity(), SurfaceTexture.OnFrameAvailableLis
             Environment.getExternalStorageDirectory().path +"/DCIM/"+System.currentTimeMillis()+".png"
         }
         option.saveAddress = saveAddress
-        surface.updateTexImage()
+//        surface.updateTexImage()
         HresJniUtil.nativeTransform(option.toJson(), option)
     }
 
@@ -86,6 +71,7 @@ class ImageShowActivity: AppCompatActivity(), SurfaceTexture.OnFrameAvailableLis
 
     override fun onSurfaceTextureDestroyed(surface: SurfaceTexture): Boolean {
         HresJniUtil.nativeTransformRelease()
+        surface.release()
         return true
     }
 

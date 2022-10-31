@@ -43,6 +43,15 @@ JNIEXPORT void JNICALL HRES(nativeCreateTransformer) (
     }
 }
 
+JNIEXPORT void JNICALL HRES(nativeUpdateViewPoint) (
+        JNIEnv *env,
+        jobject instance, jint width, jint height) {
+    HLOGV("nativeCreateTransformer");
+    if (hresTransformer != nullptr) {
+        hresTransformer->updateViewPoint(width, height);
+    }
+}
+
 JNIEXPORT void JNICALL HRES(nativeTransform) (
         JNIEnv *env,
         jobject instance, jstring options, jobject op) {

@@ -25,6 +25,7 @@ public:
     HresTransformer();
     ~HresTransformer();
     void setWindow(ANativeWindow* window);
+    void updateViewPoint(int width, int height);
     void addOption(string options, jobject op);
     void transform();
     void release();

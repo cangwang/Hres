@@ -8,8 +8,6 @@ interface HresListener {
 
     fun hresTransformComplete(option: OptionParams)
 
-    fun hresTransformComplete()
-
     fun hresTransformError(option: OptionParams, errorTag: String)
 
 }

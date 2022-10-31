@@ -28,6 +28,7 @@ public:
     FilterController();
     ~FilterController();
     void setWindow(ANativeWindow* window);
+    void updateViewPoint(int width, int height);
     void transformFilter(IOptions* option);
     void transformFilterInThread(IOptions* option);
     void setListener(FilterListener* listener);
@@ -44,10 +45,13 @@ private:
     GLuint pixelBuffer;
     unsigned char* saveImgData;
     long imgSize;
+    int surfaceWidth = 0;
+    int surfaceHeight = 0;
     int scaleImgWidth = -1;
     int scaleImgHeight = -1;
     FilterListener* listener;
     ThreadPool* pool;
+    ANativeWindow* window;
 
     void readBuffer();
     void initPixelBuffer();

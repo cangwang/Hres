@@ -16,6 +16,7 @@ public:
     ImageHresTransformer();
     ~ImageHresTransformer();
     void setWindow(ANativeWindow* window);
+    void updateViewPoint(int width, int height);
     void transformOption(IOptions* options);
     void setListener(FilterListener* listener);
     void transform();

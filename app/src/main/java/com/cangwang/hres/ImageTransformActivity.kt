@@ -38,9 +38,6 @@ class ImageTransformActivity: AppCompatActivity() {
 //                btn_album_transform.setImageBitmap(desBitmap)
             }
 
-            override fun hresTransformComplete() {
-            }
-
             override fun hresTransformError(option: OptionParams, errorTag: String) {
                 Log.e(TAG, "$errorTag $option")
             }

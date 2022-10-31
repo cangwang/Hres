@@ -9,7 +9,7 @@ ImageHresTransformer::ImageHresTransformer(): filterController(make_shared<Filte
 }
 
 ImageHresTransformer::~ImageHresTransformer() {
-
+    release();
 }
 
 void ImageHresTransformer::setWindow(ANativeWindow *window) {
@@ -18,6 +18,11 @@ void ImageHresTransformer::setWindow(ANativeWindow *window) {
     }
 }
 
+void ImageHresTransformer::updateViewPoint(int width, int height) {
+    if (filterController != nullptr) {
+        filterController->updateViewPoint(width, height);
+    }
+}
 
 void ImageHresTransformer::setListener(FilterListener *listener) {
     if (filterController != nullptr) {

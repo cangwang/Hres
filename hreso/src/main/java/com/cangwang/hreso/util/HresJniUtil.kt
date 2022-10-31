@@ -12,6 +12,8 @@ object HresJniUtil {
 
     external fun nativeCreateTransformer(tag: String, optionParams: String, surfaceTexture: Surface?)
 
+    external fun nativeUpdateViewPoint(width: Int, height: Int)
+
     external fun nativeTransform(option: String, op: OptionParams)
 
     external fun nativeSetListener(listener: HresListener)

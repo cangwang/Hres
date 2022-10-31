@@ -9,11 +9,7 @@ HresTransformer::HresTransformer(): optionParser(nullptr) {
 }
 
 HresTransformer::~HresTransformer() {
-    optionsList->clear();
-    if (optionParser != nullptr) {
-        optionParser = nullptr;
-    }
-    listenerManager = nullptr;
+    release();
 }
 
 void HresTransformer::setWindow(ANativeWindow *window) {
@@ -21,6 +17,12 @@ void HresTransformer::setWindow(ANativeWindow *window) {
         imageHresTransformer = make_shared<ImageHresTransformer>();
     }
     imageHresTransformer->setWindow(window);
+}
+
+void HresTransformer::updateViewPoint(int width, int height) {
+    if (imageHresTransformer != nullptr) {
+        imageHresTransformer->updateViewPoint(width, height);
+    }
 }
 
 void HresTransformer::setListener(ListenerManager* listenerManager) {
@@ -67,8 +69,12 @@ void HresTransformer::transform() {
 
 void HresTransformer::release() {
     optionsList->clear();
+    if (optionParser != nullptr) {
+        optionParser = nullptr;
+    }
     if (imageHresTransformer != nullptr) {
         imageHresTransformer->release();
+        imageHresTransformer = nullptr;
     }
     if (listenerManager != nullptr) {
         listenerManager = nullptr;
