@@ -33,7 +33,6 @@ public:
     void transformFilter(IOptions* option);
     void transformFilterInThread(IOptions* option);
     void setListener(FilterListener* listener);
-    void save(IOptions* option);
     void render();
     void renderInThread();
     void release();
@@ -43,25 +42,13 @@ private:
     IOptions* option;
     list<IFilter*> filterList;
     string filterName;
-    GLuint pixelBuffer;
-    unsigned char* saveImgData;
-    long imgSize;
-    int surfaceWidth = 0;
-    int surfaceHeight = 0;
-    int scaleImgWidth = -1;
-    int scaleImgHeight = -1;
     FilterListener* listener;
     ThreadPool* pool;
     ANativeWindow* window;
+    int surfaceWidth = 0;
+    int surfaceHeight = 0;
 
     shared_ptr<FbFilter> fbFilter;
-
-    void readBuffer();
-    void initPixelBuffer();
-    void drawPixelBuffer();
-    void destroyPixelBuffers();
-    bool saveImg(const string saveFileAddress,unsigned char* data,int width,int height,int type);
-    void checkGLError(std::string op);
 };
 
 

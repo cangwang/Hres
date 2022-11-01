@@ -26,6 +26,15 @@ public:
     virtual GLuint getExternalTexture() = 0;
     virtual void releaseTexture() = 0;
     virtual void swapBuffers() = 0;
+
+    //检测错误
+    void checkGLError(std::string op) {
+        GLint error = glGetError();
+        if(error != GL_NO_ERROR){
+            char err = (char)error;
+            HLOGE("%s :glError 0x%d",op.c_str(),err);
+        }
+    }
 };
 
 #endif //HRES_IFILTER_H

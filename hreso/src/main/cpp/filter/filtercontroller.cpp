@@ -5,8 +5,6 @@
 #include <unistd.h>
 #include "filtercontroller.h"
 
-
-
 FilterController::FilterController(): pool(new ThreadPool(1)), window(nullptr) {
     pool->init();
 }
@@ -49,11 +47,6 @@ void FilterController::transformFilter(IOptions *option) {
         eglCore->start(nullptr);
     }
 
-    if (option != nullptr) {
-        scaleImgWidth = option->getScaleWidth();
-        scaleImgHeight = option->getScaleHeight() ;
-    }
-
     if (option == nullptr) {
         HLOGV("transformFilter option nullptr");
         return;
@@ -74,7 +67,6 @@ void FilterController::transformFilter(IOptions *option) {
     }
 
     this->option = option;
-//    initPixelBuffer();
 }
 
 void FilterController::transformFilterInThread(IOptions *option) {
@@ -97,17 +89,12 @@ void FilterController::render() {
         eglCore->start(nullptr);
     }
     //设置视屏大小
-    if (this->window != nullptr) {
-        if(surfaceWidth > 0 && surfaceHeight > 0) {
-            glViewport(0, 0, surfaceWidth, surfaceHeight);
-        } else {
-            HLOGE("render glViewport surfaceWidth || surfaceHeight = 0");
-        }
-    } else if (scaleImgWidth > 0 && scaleImgHeight > 0) {
-        glViewport(0, 0, scaleImgWidth, scaleImgHeight);
+    if (option != nullptr) {
+        glViewport(0, 0, option->getScaleWidth(), option->getScaleHeight());
     } else {
-        HLOGE("render no glViewport");
+        HLOGE("option is null, no glViewport");
     }
+
     glClearColor(0, 0, 0, 0);
     glClear(GL_COLOR_BUFFER_BIT);
 
@@ -136,11 +123,6 @@ void FilterController::render() {
     if (eglCore != nullptr) {
         eglCore->swapBuffer();
     }
-//    drawPixelBuffer();
-    readBuffer();
-    if (option != nullptr) {  //保存图片
-        return save(option);
-    }
 //    return "option is null";
 }
 
@@ -157,98 +139,6 @@ void FilterController::renderInThread() {
     }
 }
 
-void FilterController::save(IOptions* option) {
-    string address;
-    if (option->getSaveAddress().empty()) {
-        HLOGV("saveAddress is null, use origin address");
-        address = option->getAddress();
-    } else {
-        address = option->getSaveAddress();
-    }
-    if (scaleImgWidth > 0 && scaleImgHeight > 0) {
-        bool result = saveImg(address, saveImgData, scaleImgWidth, scaleImgHeight,
-                              option->srcChannel);
-
-        if (listener != nullptr) {
-            if (result) {
-                listener->filterRenderComplete(option);
-            } else {
-                listener->filterRenderFail(option, string("saveImage fail"));
-            }
-        }
-//        if (result) {
-//            return nullptr;
-//        } else {
-//            return "saveImage fail";
-//        }
-    } else {
-        if (listener != nullptr) {
-            listener->filterRenderFail(option, string("scaleImgWidth || scaleImgHeight = 0"));
-        }
-//        return "scaleImgWidth || scaleImgHeight = 0";
-    }
-}
-
-void FilterController::readBuffer() {
-    //加锁
-    std::unique_lock<std::mutex> lock(gMutex);
-
-    long size = scaleImgWidth * scaleImgHeight * 4;
-    saveImgData = (unsigned char *) malloc(sizeof(unsigned char)*size);
-    //清空数据
-    memset(saveImgData,0, sizeof(unsigned char)*size);
-
-//    glReadBuffer(GL_FRONT);
-    //对齐像素字节
-    glPixelStorei(GL_PACK_ALIGNMENT, 1);
-    checkGLError("glPixelStorei");
-    //获取帧内字节
-    glReadPixels(0, 0, scaleImgWidth, scaleImgHeight, GL_RGBA, GL_UNSIGNED_BYTE, saveImgData);
-}
-
-
-bool FilterController::saveImg(const string saveFileAddress,unsigned char* data,int width,int height, int channel) {
-//    FILE *file = fopen(saveFileAddress.c_str(), "wb+");
-//    if (file == nullptr) {
-//        return false;
-//    }
-
-    if (data == nullptr) {
-        HLOGE("saveImg data is null");
-        return false;
-    }
-
-    //屏幕到文件保存需要使用
-    stbi_flip_vertically_on_write(1);
-    //保存图片到本地文件
-//    if (channel == 3) {
-//        if (stbi_write_jpg(saveFileAddress.c_str(), width, height, channel, data, 0)) {
-//            HLOGV("save address = %s success", saveFileAddress.c_str());
-////            free(data);
-//            memset(saveImgData, 0, imgSize);
-//            return true;
-//        } else {
-////            free(data);
-//            memset(saveImgData, 0, imgSize);
-//            HLOGE("save fail address = %s fail", saveFileAddress.c_str());
-//            return false;
-//        }
-//    } else if (channel == 4) {
-        if (stbi_write_png(saveFileAddress.c_str(), width, height, 4, data, 0)) {
-            HLOGV("save address = %s success", saveFileAddress.c_str());
-//            free(data);
-            memset(saveImgData, 0, imgSize);
-            return true;
-        } else {
-//            free(data);
-            memset(saveImgData, 0, imgSize);
-            HLOGE("save fail address = %s fail", saveFileAddress.c_str());
-            return false;
-        }
-//    }
-
-}
-
 void FilterController::release() {
     glClearColor(0, 0, 0, 0);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -261,77 +151,12 @@ void FilterController::release() {
     filterList.clear();
     listener = nullptr;
 
-    destroyPixelBuffers();
-    option = nullptr;
-    if (saveImgData) {
-        memset(saveImgData, 0, imgSize);
-        saveImgData = nullptr;
-    }
-
     if (eglCore != nullptr) {
         eglCore->release();
         eglCore = nullptr;
     }
 }
 
-void FilterController::initPixelBuffer() {
-    destroyPixelBuffers();
-    HLOGV("initPixelBuffer");
-    pixelBuffer = -1;
-
-    int align = 128;//128字节对齐
-//    imgSize = ((scaleImgWidth * 4 + (align - 1)) & ~(align - 1))* scaleImgHeight;
-    imgSize = scaleImgWidth * scaleImgHeight * 4;
-
-    glGenBuffers(1,&pixelBuffer);
-    glBindBuffer(GL_PIXEL_PACK_BUFFER, pixelBuffer);
-    glBufferData(GL_PIXEL_PACK_BUFFER, imgSize, nullptr, GL_STATIC_READ);
-}
-
-
-void FilterController::drawPixelBuffer() {
-    HLOGV("drawPixelBuffer");
-    if (pixelBuffer < 0) {
-        HLOGE("pixelBuffer not init");
-        return;
-    }
-    if (scaleImgWidth > 0 && scaleImgHeight > 0) {
-        glBindBuffer(GL_PIXEL_PACK_BUFFER, pixelBuffer);
-        glReadPixels(0, 0, scaleImgWidth, scaleImgHeight, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-
-        if (imgSize > 0) {
-            HLOGV("imgSize = %ld",  imgSize);
-            saveImgData = (unsigned char *) glMapBufferRange(GL_PIXEL_PACK_BUFFER, 0, imgSize,
-                                                             GL_MAP_READ_BIT);
-        } else {
-            HLOGE("imgSize = 0");
-        }
-        glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
-        //解除绑定PBO
-        glBindBuffer(GL_PIXEL_PACK_BUFFER, GL_NONE);
-    } else {
-        HLOGE("scaleImageWith or scaleImageHeight = 0");
-        return;
-    }
-}
-
-void FilterController::destroyPixelBuffers() {
-    if (pixelBuffer > 0) {
-        HLOGV("destroyPixelBuffers");
-        glDeleteTextures(1, &pixelBuffer);
-    }
-}
-
-
 void FilterController::setListener(FilterListener *listener) {
     this->listener = listener;
-}
-
-//检测错误
-void FilterController::checkGLError(std::string op) {
-    GLint error = glGetError();
-    if(error != GL_NO_ERROR){
-        char err = (char)error;
-        HLOGE("%s :glError 0x%d",op.c_str(),err);
-    }
 }

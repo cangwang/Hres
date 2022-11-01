@@ -135,7 +135,7 @@ void FbFilter::releaseTexture() {
     }
     option = nullptr;
     if (saveImgData) {
-        memset(saveImgData, 0, imgSize);
+//        memset(saveImgData, 0, imgSize);
         saveImgData = nullptr;
     }
 }
@@ -292,6 +292,23 @@ void FbFilter::destroyPixelBuffers() {
         HLOGV("destroyPixelBuffers");
         glDeleteTextures(1, &pixelBuffer);
     }
+}
+
+void FbFilter::readBuffer() {
+    //加锁
+//    std::unique_lock<std::mutex> lock(gMutex);
+//
+//    long size = scaleImgWidth * scaleImgHeight * 4;
+//    saveImgData = (unsigned char *) malloc(sizeof(unsigned char)*size);
+//    //清空数据
+//    memset(saveImgData,0, sizeof(unsigned char)*size);
+//
+////    glReadBuffer(GL_FRONT);
+//    //对齐像素字节
+//    glPixelStorei(GL_PACK_ALIGNMENT, 1);
+//    checkGLError("glPixelStorei");
+//    //获取帧内字节
+//    glReadPixels(0, 0, scaleImgWidth, scaleImgHeight, GL_RGBA, GL_UNSIGNED_BYTE, saveImgData);
 }
 
 void FbFilter::setListener(FilterListener *listener) {
