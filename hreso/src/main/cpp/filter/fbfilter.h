@@ -69,7 +69,7 @@ private:
     void initPixelBuffer();
     void destroyPixelBuffers();
     void readBuffer();
-    void save(IOptions* option);
+    string save(IOptions* option);
     void saveInThread(IOptions* option);
     bool saveImg(const string saveFileAddress,unsigned char* data,int width,int height,int type);
 };

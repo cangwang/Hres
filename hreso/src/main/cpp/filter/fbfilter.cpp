@@ -63,6 +63,7 @@ void FbFilter::renderFrame() {
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
         checkGLError("glDrawArrays");
         drawPixelBuffer();
+        saveInThread(option);
         glBindTexture(GL_TEXTURE_2D, GL_NONE);
 
 //        glEnable(GL_BLEND);
@@ -198,7 +199,6 @@ void FbFilter::drawPixelBuffer() {
         glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
         //解除绑定PBO
         glBindBuffer(GL_PIXEL_PACK_BUFFER, GL_NONE);
-        saveInThread(option);
     } else {
         HLOGE("scaleImageWith or scaleImageHeight = 0");
         return;
@@ -211,15 +211,24 @@ void FbFilter::saveInThread(IOptions* option) {
         pool = new ThreadPool(1);
         pool->init();
     }
-    auto saveWork = [&](IOptions *options)->void {
-        save(options);
+    auto saveWork = [&](IOptions *options)->string {
+        return save(options);
     };
     if (pool != nullptr) {
-        pool->submit(saveWork, option);
+        // 结果回调原线程
+        auto result = pool->submit(saveWork, option);
+        string error = result.get();
+        if (listener != nullptr) {
+            if (error.empty()) {
+                listener->filterRenderComplete(option);
+            } else {
+                listener->filterRenderFail(option, error);
+            }
+        }
     }
 }
 
-void FbFilter::save(IOptions* option) {
+string FbFilter::save(IOptions* option) {
     string address;
     if (option != nullptr) {
         if (option->getSaveAddress().empty()) {
@@ -232,35 +241,18 @@ void FbFilter::save(IOptions* option) {
             bool result = saveImg(address, saveImgData, option->getScaleWidth(),
                                   option->getScaleHeight(),
                                   option->srcChannel);
-
-            if (listener != nullptr) {
-                if (result) {
-                    listener->filterRenderComplete(option);
-                } else {
-                    listener->filterRenderFail(option, string("saveImage fail"));
-                }
+            if (result) {
+                return "";
+            } else {
+                return "error saveImage fail";
             }
-
-//        if (result) {
-//            return nullptr;
-//        } else {
-//            return "saveImage fail";
-//        }
         } else {
-            if (listener != nullptr) {
-                listener->filterRenderFail(option, string("scaleImgWidth || scaleImgHeight = 0"));
-            }
-//        return "scaleImgWidth || scaleImgHeight = 0";
+            return "error scaleImgWidth || scaleImgHeight = 0";
         }
     }
 }
 
 bool FbFilter::saveImg(const string saveFileAddress,unsigned char* data,int width,int height, int channel) {
-//    FILE *file = fopen(saveFileAddress.c_str(), "wb+");
-//    if (file == nullptr) {
-//        return false;
-//    }
-
     if (data == nullptr) {
         HLOGE("saveImg data is null");
         return false;
