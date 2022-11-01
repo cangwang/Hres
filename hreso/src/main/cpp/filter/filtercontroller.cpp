@@ -139,6 +139,32 @@ void FilterController::renderInThread() {
     if (pool != nullptr) {
         pool->submit(renderWork);
     }
+    saveInThread();
+}
+
+void FilterController::saveInThread() {
+//    render();
+    //加锁
+    unique_lock<mutex> lock(gMutex);
+    auto saveWork = [&](IOptions* option) -> string
+    {
+        if (fbFilter != nullptr) {
+            return fbFilter->save(option);
+        } else {
+            return "filter is null";
+        }
+    };
+    if (pool != nullptr) {
+        auto result = pool->submit(saveWork, option);
+        string error = result.get();
+        if (listener != nullptr) {
+            if (error.empty()) {
+                listener->filterRenderComplete(option);
+            } else {
+                listener->filterRenderFail(option, error);
+            }
+        }
+    }
 }
 
 void FilterController::release() {

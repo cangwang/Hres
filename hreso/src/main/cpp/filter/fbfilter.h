@@ -41,6 +41,8 @@ public:
     void setListener(FilterListener* listener);
     void drawPixelBuffer();
 
+    string save(IOptions* option);
+
 private:
     shared_ptr<GlFloatArray> vertexArray;
     shared_ptr<GlFloatArray> rgbaArray;
@@ -69,8 +71,7 @@ private:
     void initPixelBuffer();
     void destroyPixelBuffers();
     void readBuffer();
-    string save(IOptions* option);
-    void saveInThread(IOptions* option);
+
     bool saveImg(const string saveFileAddress,unsigned char* data,int width,int height,int type);
 };
 

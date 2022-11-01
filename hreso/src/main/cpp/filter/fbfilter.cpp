@@ -4,16 +4,12 @@
 
 #include "fbfilter.h"
 
-FbFilter::FbFilter():pool(nullptr) {
+FbFilter::FbFilter() {
     initFilter();
 }
 
 FbFilter::~FbFilter() {
     destroyFilter();
-    if (pool) {
-        pool->shutdown();
-        pool = nullptr;
-    }
 }
 
 void FbFilter::initFilter() {
@@ -202,29 +198,6 @@ void FbFilter::drawPixelBuffer() {
     } else {
         HLOGE("scaleImageWith or scaleImageHeight = 0");
         return;
-    }
-}
-
-void FbFilter::saveInThread(IOptions* option) {
-//    save(option);
-    if (pool == nullptr) {
-        pool = new ThreadPool(1);
-        pool->init();
-    }
-    auto saveWork = [&](IOptions *options)->string {
-        return save(options);
-    };
-    if (pool != nullptr) {
-        // 结果回调原线程
-        auto result = pool->submit(saveWork, option);
-        string error = result.get();
-        if (listener != nullptr) {
-            if (error.empty()) {
-                listener->filterRenderComplete(option);
-            } else {
-                listener->filterRenderFail(option, error);
-            }
-        }
     }
 }
 

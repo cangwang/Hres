@@ -35,6 +35,7 @@ public:
     void setListener(FilterListener* listener);
     void render();
     void renderInThread();
+    void saveInThread();
     void release();
 private:
     mutex gMutex;
