@@ -7,7 +7,8 @@
 GLuint LoadTextureUtil::loadTextureFromFile(const char *fileName, int *w, int *h,int *n) {
     GLuint textureHandler=0;
     glGenTextures(1,&textureHandler);
-    if (textureHandler!=-1){
+
+    if (textureHandler != GL_NONE){
         glBindTexture(GL_TEXTURE_2D,textureHandler);
         //纹理放大缩小使用线性插值
         glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
@@ -39,8 +40,26 @@ GLuint LoadTextureUtil::loadTextureFromFile(const char *fileName, int *w, int *h
 
             return 0; //代表加载图片失败
         }
+    } else  {
+        HLOGE("glGenTextures 0 ,maybe not in egl");
+        return -1;
     }
-    return textureHandler;
+}
+
+void LoadTextureUtil::loadWidthHeightFromOption(IOptions *option, int *w, int *h,int *n) {
+    if (option == nullptr || option->getAddress().empty()) {
+        HLOGV("loadWidthHeightFromOption option null");
+        return;
+    }
+    const char* fileName = option->getAddress().c_str();
+
+    //读取图片长宽高数据
+    unsigned char* data = stbi_load(fileName, w, h, n, 0);
+    if (data == nullptr) {
+        HLOGE("%s is null", fileName);
+    }
+
+    HLOGV("loadTexture fileName = %s,width = %d,height=%d,n=%d",fileName,*w,*h,*n);
 }
 
 GLuint LoadTextureUtil::loadTextureFromOption(IOptions* option) {
@@ -51,7 +70,7 @@ GLuint LoadTextureUtil::loadTextureFromOption(IOptions* option) {
 
     GLuint textureHandler=0;
     glGenTextures(1,&textureHandler);
-    if (textureHandler!=-1){
+    if (textureHandler != GL_NONE){
         glBindTexture(GL_TEXTURE_2D,textureHandler);
         //纹理放大缩小使用线性插值
         glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
@@ -89,6 +108,8 @@ GLuint LoadTextureUtil::loadTextureFromOption(IOptions* option) {
 
             return 0; //代表加载图片失败
         }
+    } else {
+        HLOGE("glGenTextures 0 ,maybe not in egl");
+        return -1;
     }
-    return textureHandler;
 }

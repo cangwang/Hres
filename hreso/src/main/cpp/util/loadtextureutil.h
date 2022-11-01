@@ -20,6 +20,7 @@ class LoadTextureUtil {
 public:
     static GLuint loadTextureFromFile(const char *fileName, int *w, int *h,int *n);
     static GLuint loadTextureFromOption(IOptions* options);
+    static void loadWidthHeightFromOption(IOptions* options, int *w, int *h, int *n);
 };
 
 

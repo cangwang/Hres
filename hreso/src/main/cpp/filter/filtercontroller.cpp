@@ -17,6 +17,7 @@ FilterController::~FilterController() {
     }
 }
 
+//显示屏幕加载
 void FilterController::setWindow(ANativeWindow *window) {
 //    if (eglCore == nullptr) {
 //        eglCore = make_shared<EGLCore>();
@@ -28,7 +29,7 @@ void FilterController::setWindow(ANativeWindow *window) {
     {
         if (eglCore == nullptr) {
             eglCore = make_shared<EGLCore>();
-            eglCore->start(window);
+            eglCore->start(window, 0, 0);
         }
     };
     if (pool != nullptr) {
@@ -42,19 +43,24 @@ void FilterController::updateViewPoint(int width, int height) {
 }
 
 void FilterController::transformFilter(IOptions *option) {
-    if (eglCore == nullptr) {
-        eglCore = make_shared<EGLCore>();
-        eglCore->start(nullptr);
-    }
-
     if (option == nullptr) {
         HLOGV("transformFilter option nullptr");
         return;
     }
+    if (eglCore == nullptr) { //后台Surface转换
+        eglCore = make_shared<EGLCore>();
+        int width = 0;
+        int height = 0;
+        int channel = 0;
+        LoadTextureUtil::loadWidthHeightFromOption(option, &width, &height, &channel);
+        eglCore->start(nullptr, width, height);
+    }
+
+    //读取textureId到option
+    LoadTextureUtil::loadTextureFromOption(option);
     if (filterName != option->getFilterType()) {  //滤镜模式不一样
         if (option->getFilterType() == "simple") {
             IFilter* filter = new SimpleFilter();
-            LoadTextureUtil::loadTextureFromOption(option);
             filter->setOptions(option);
             filterList.push_front(filter);
         }
@@ -84,10 +90,6 @@ void FilterController::transformFilterInThread(IOptions *option) {
 }
 
 void FilterController::render() {
-    if (eglCore == nullptr) {
-        eglCore = make_shared<EGLCore>();
-        eglCore->start(nullptr);
-    }
     //设置视屏大小
     if (option != nullptr) {
         glViewport(0, 0, option->getScaleWidth(), option->getScaleHeight());

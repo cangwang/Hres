@@ -16,7 +16,7 @@ public:
 
     ~EGLCore();
 
-    void start(ANativeWindow* window);
+    void start(ANativeWindow* window, int width, int height);
 
     EGLConfig chooseConfig();
 

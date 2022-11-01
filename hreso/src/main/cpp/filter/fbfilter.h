@@ -39,6 +39,7 @@ public:
     void disableFrameBuffer();
 
     void setListener(FilterListener* listener);
+    void drawPixelBuffer();
 
 private:
     shared_ptr<GlFloatArray> vertexArray;
@@ -66,7 +67,6 @@ private:
     ThreadPool* pool;
 
     void initPixelBuffer();
-    void drawPixelBuffer();
     void destroyPixelBuffers();
     void readBuffer();
     void save(IOptions* option);

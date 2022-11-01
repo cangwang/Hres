@@ -60,21 +60,22 @@ void FbFilter::renderFrame() {
         //加载纹理
         glUniform1i(uTextureLocation, 0);
         rgbaArray->setVertexAttribPointer(textureLocation);
-
-        glEnable(GL_BLEND);
-        //基于alpha通道的半透明混合函数
-        //void glBlendFuncSeparate(GLenum srcRGB,
-        //     GLenum dstRGB,
-        //     GLenum srcAlpha,
-        //     GLenum dstAlpha);
-        glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        checkGLError("glDrawArrays");
         drawPixelBuffer();
-        //关闭混合
-        glDisable(GL_BLEND);
-        if (option != nullptr) {
-            saveInThread(option);
-        }
+        glBindTexture(GL_TEXTURE_2D, GL_NONE);
+
+//        glEnable(GL_BLEND);
+//        //基于alpha通道的半透明混合函数
+//        //void glBlendFuncSeparate(GLenum srcRGB,
+//        //     GLenum dstRGB,
+//        //     GLenum srcAlpha,
+//        //     GLenum dstAlpha);
+//        glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+//        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+//        drawPixelBuffer();
+//        //关闭混合
+//        glDisable(GL_BLEND);
     }
 }
 
@@ -107,7 +108,6 @@ void FbFilter::setOptions(IOptions *options) {
     vertexArray->setArray(VertexUtil::createFlip(options->getScaleWidth(), options->getScaleHeight(),
                                                  new PointRect(0, 0, options->getScaleWidth(),
                                                                options->getScaleHeight()), vertexArray->array));
-
     float *rgba = TexCoordsUtil::create(options->getScaleWidth(), options->getScaleHeight(),
                                         new PointRect(0, 0, options->getScaleWidth(),
                                                       options->getScaleHeight()),
@@ -164,6 +164,9 @@ void FbFilter::initPixelBuffer() {
     int align = 128;//128字节对齐
     imgSize = ((option->getScaleWidth() * 4 + (align - 1)) & ~(align - 1)) * option->getScaleHeight();
 //    imgSize = option->getScaleWidth() * option->getScaleHeight() * 4;
+    saveImgData = (unsigned char *) malloc(sizeof(unsigned char)*imgSize);
+    //清空数据
+    memset(saveImgData,0, sizeof(unsigned char)*imgSize);
 
     glGenBuffers(1, &pixelBuffer);
     glBindBuffer(GL_PIXEL_PACK_BUFFER, pixelBuffer);
@@ -177,19 +180,25 @@ void FbFilter::drawPixelBuffer() {
         return;
     }
     if (option != nullptr && option->getScaleWidth() > 0 && option->getScaleHeight() > 0) {
+        glReadBuffer(GL_BACK);
+        checkGLError("glReadBuffer");
         glBindBuffer(GL_PIXEL_PACK_BUFFER, pixelBuffer);
+        checkGLError("glBindBuffer");
         glReadPixels(0, 0, option->getScaleWidth(), option->getScaleHeight(), GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+        checkGLError("glReadPixels");
 
         if (imgSize > 0) {
             HLOGV("imgSize = %ld",  imgSize);
             saveImgData = (unsigned char *) glMapBufferRange(GL_PIXEL_PACK_BUFFER, 0, imgSize,
                                                              GL_MAP_READ_BIT);
+            checkGLError("glMapBufferRange");
         } else {
             HLOGE("imgSize = 0");
         }
         glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
         //解除绑定PBO
         glBindBuffer(GL_PIXEL_PACK_BUFFER, GL_NONE);
+        saveInThread(option);
     } else {
         HLOGE("scaleImageWith or scaleImageHeight = 0");
         return;

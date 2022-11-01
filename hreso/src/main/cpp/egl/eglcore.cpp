@@ -19,7 +19,7 @@ EGLCore::~EGLCore() {
     mContext = EGL_NO_CONTEXT;
 }
 
-void EGLCore::start(ANativeWindow* window) {
+void EGLCore::start(ANativeWindow* window, int width, int height) {
     mDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
     if (mDisplay == EGL_NO_DISPLAY) {
         HLOGE("eglGetDisplay failed: %d", eglGetError());
@@ -28,7 +28,7 @@ void EGLCore::start(ANativeWindow* window) {
     GLint majorVersion;
     GLint minorVersion;
     //获取支持最低和最高版本
-    if (!eglInitialize(mDisplay,&majorVersion,&minorVersion)){
+    if (!eglInitialize(mDisplay, &majorVersion, &minorVersion)){
         HLOGE("eglInitialize failed: %d",eglGetError());
         return;
     }
@@ -38,21 +38,25 @@ void EGLCore::start(ANativeWindow* window) {
 
     mContext = createContext(mDisplay, config);
     ELOGD("createContext success");
-    EGLint format = 0;
-    if (!eglGetConfigAttrib(mDisplay,config,EGL_NATIVE_VISUAL_ID,&format)){
-        HLOGE("eglGetConfigAttrib failed: %d",eglGetError());
-    }
-    ELOGD("eglGetConfigAttrib success");
     if (window) {
+        EGLint format = 0;
+        if (!eglGetConfigAttrib(mDisplay,config,EGL_NATIVE_VISUAL_ID,&format)){
+            HLOGE("eglGetConfigAttrib failed: %d", eglGetError());
+        }
+        ELOGD("eglGetConfigAttrib success");
         ANativeWindow_setBuffersGeometry(window, 0, 0, format);
         ELOGD("setBuffersGeometry success");
     }
     //创建On-Screen 渲染区域
     if (window) {
-        mSurface = eglCreateWindowSurface(mDisplay,config,window,0);
+        mSurface = eglCreateWindowSurface(mDisplay, config, window,0);
     } else {
+        const EGLint pbuf_attribs[] = {
+                EGL_WIDTH, width,
+                EGL_HEIGHT, height,
+                EGL_NONE};
         //创建离屏渲染Surface
-        mSurface = eglCreatePbufferSurface(mDisplay, config, 0);
+        mSurface = eglCreatePbufferSurface(mDisplay, config, pbuf_attribs);
     }
     if (mSurface == nullptr || mSurface == EGL_NO_SURFACE){
         EGLint error = eglGetError();
@@ -73,19 +77,24 @@ void EGLCore::start(ANativeWindow* window) {
         }
         return;
     }
-    ELOGD("eglCreatePbufferSurface success");
+    if (window) {
+        ELOGD("eglCreateWindowSurface success");
+    } else {
+        ELOGD("eglCreatePbufferSurface success");
+    }
+
     if (!eglMakeCurrent(mDisplay, mSurface, mSurface, mContext)) {
-        HLOGE("make current error:${Integer.toHexString(egl?.eglGetError() ?: 0)}");
+        HLOGE("make current error:%d",eglGetError());
     }
     ELOGD("eglMakeCurrent success");
 }
 
 EGLConfig EGLCore::chooseConfig() {
-    int configsCount = 0;
+    EGLint configsCount = 0;
     EGLConfig configs;
     EGLint attributes[] =
             { EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT_KHR,
-              EGL_SURFACE_TYPE,EGL_PBUFFER_BIT,//EGL_WINDOW_BIT EGL_PBUFFER_BIT we will create a pixelbuffer surface
+              EGL_SURFACE_TYPE, EGL_PBUFFER_BIT,//EGL_WINDOW_BIT EGL_PBUFFER_BIT we will create a pixelbuffer surface
               EGL_RED_SIZE,   8,
               EGL_GREEN_SIZE, 8,
               EGL_BLUE_SIZE,  8,
@@ -216,4 +225,7 @@ void EGLCore::release() {
     eglDestroyContext(mDisplay,mContext);
     eglReleaseThread();
     eglTerminate(mDisplay);
+    mDisplay = EGL_NO_DISPLAY;
+    mSurface = EGL_NO_SURFACE;
+    mContext = EGL_NO_CONTEXT;
 }
