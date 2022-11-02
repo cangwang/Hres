@@ -202,6 +202,7 @@ void FbFilter::drawPixelBuffer() {
 
 string FbFilter::save() {
     string address;
+    string error;
     if (option != nullptr) {
         if (option->getSaveAddress().empty()) {
             HLOGV("saveAddress is null, use origin address");
@@ -214,14 +215,23 @@ string FbFilter::save() {
                                   option->getScaleHeight(),
                                   option->srcChannel);
             if (result) {
-                return "";
+                error = "";
             } else {
-                return "error saveImage fail";
+                error = "error saveImage fail";
             }
         } else {
-            return "error scaleImgWidth || scaleImgHeight = 0";
+            error = "error scaleImgWidth || scaleImgHeight = 0";
         }
     }
+
+    if (listener != nullptr) {
+        if (error.empty()) {
+            listener->filterRenderComplete(option);
+        } else {
+            listener->filterRenderFail(option, error);
+        }
+    }
+    return error;
 }
 
 bool FbFilter::saveImg(const string saveFileAddress,unsigned char* data,int width,int height, int channel) {

@@ -34,8 +34,10 @@ class ImageTransformActivity: AppCompatActivity() {
             }
 
             override fun hresTransformComplete(option: OptionParams) {
-                val desBitmap = BitmapFactory.decodeFile(option.saveAddress)
-                btn_album_transform.setImageBitmap(desBitmap)
+                btn_album_transform.post {
+                    val desBitmap = BitmapFactory.decodeFile(option.saveAddress)
+                    btn_album_transform.setImageBitmap(desBitmap)
+                }
             }
 
             override fun hresTransformError(option: OptionParams, errorTag: String) {
