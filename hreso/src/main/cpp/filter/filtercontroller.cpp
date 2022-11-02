@@ -59,11 +59,15 @@ void FilterController::transformFilter(IOptions *option) {
     //读取textureId到option
     LoadTextureUtil::loadTextureFromOption(option);
     if (filterName != option->getFilterType()) {  //滤镜模式不一样
+        IFilter* filter = nullptr;
         if (option->getFilterType() == "simple") {
-            IFilter* filter = new SimpleFilter();
-            filter->setOptions(option);
-            filterList.push_front(filter);
+            filter = new SimpleFilter();
+
+        } else if (option->getFilterType() == "fsr"){
+            filter = new FsrFilter();
         }
+        filter->setOptions(option);
+        filterList.push_front(filter);
         filterName = option->getFilterType();
     }
     if (fbFilter == nullptr) {

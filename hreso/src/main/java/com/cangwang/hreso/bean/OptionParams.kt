@@ -6,7 +6,7 @@ class OptionParams {
     var name = ""
     var address = ""
     var saveAddress = ""
-    var filterType = "simple"  //滤镜名称
+    var filterType = "fsr"  //滤镜名称
     var type = 1  // 1是图片 2是视频
     var scaleType = 1  //1 使用scaleRatio, 2使用固定宽高
     var scaleRatio = 1f

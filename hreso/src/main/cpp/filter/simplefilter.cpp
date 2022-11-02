@@ -35,18 +35,6 @@ void SimpleFilter::initFilter() {
             "gl_Position = vPosition;\n"
             "}";
 
-//    FRAGMENT_SHADER = SHADER_STR(
-//            ##version 300 es
-//            ##extension GL_OES_EGL_image_external_essl3 : require
-//            precision mediump float;
-//            uniform sampler2D uTexture;
-//            in vec2 v_TexCoordinate;
-//            out vec4 gl_FragColor;
-//            void main () {
-//                gl_FragColor = texture2D(uTexture, v_TexCoordinate);
-////                gl_FragColor = vec4(1.0,0.2,0.5,1.0);
-//            }
-//    );
     char FRAGMENT_SHADER[] = "#version 300 es\n"
 //                      "#extension GL_OES_EGL_image_external_essl3 : require"
                       "precision mediump float;\n"
