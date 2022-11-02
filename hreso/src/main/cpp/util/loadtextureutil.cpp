@@ -46,13 +46,15 @@ GLuint LoadTextureUtil::loadTextureFromFile(const char *fileName, int *w, int *h
     }
 }
 
-void LoadTextureUtil::loadWidthHeightFromOption(IOptions *option, int *w, int *h,int *n) {
+void LoadTextureUtil::loadWidthHeightFromOption(IOptions *option) {
     if (option == nullptr || option->getAddress().empty()) {
         HLOGV("loadWidthHeightFromOption option null");
         return;
     }
     const char* fileName = option->getAddress().c_str();
-
+    int* w = &option->srcWidth;
+    int* h = &option->srcHeight;
+    int* n = &option->srcChannel;
     //读取图片长宽高数据
     unsigned char* data = stbi_load(fileName, w, h, n, 0);
     if (data == nullptr) {

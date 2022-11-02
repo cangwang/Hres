@@ -49,11 +49,8 @@ void FilterController::transformFilter(IOptions *option) {
     }
     if (eglCore == nullptr) { //后台Surface转换
         eglCore = make_shared<EGLCore>();
-        int width = 0;
-        int height = 0;
-        int channel = 0;
-        LoadTextureUtil::loadWidthHeightFromOption(option, &width, &height, &channel);
-        eglCore->start(nullptr, width, height);
+        LoadTextureUtil::loadWidthHeightFromOption(option);
+        eglCore->start(nullptr, option->getScaleWidth(), option->getScaleHeight());
     }
 
     //读取textureId到option

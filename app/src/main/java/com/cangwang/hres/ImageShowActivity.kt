@@ -44,7 +44,6 @@ class ImageShowActivity: AppCompatActivity(), TextureView.SurfaceTextureListener
             override fun hresTransformComplete(option: OptionParams) {
                 val desBitmap = BitmapFactory.decodeFile(option.saveAddress)
 //                btn_album_transform.setImageBitmap(desBitmap)
-                textureView.invalidate()
             }
 
             override fun hresTransformError(option: OptionParams, errorTag: String) {

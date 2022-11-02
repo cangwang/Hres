@@ -46,7 +46,7 @@ class ImageTransformActivity: AppCompatActivity() {
         })
         val option = OptionParams()
         option.address = selectPaths.path
-        option.scaleRatio = 1.0f
+        option.scaleRatio = 2.0f
         val saveAddress = if(Build.BRAND == "Xiaomi"){ // 小米手机
             Environment.getExternalStorageDirectory().path +"/DCIM/Camera/"+System.currentTimeMillis()+".png"
         }else{  // Meizu 、Oppo
