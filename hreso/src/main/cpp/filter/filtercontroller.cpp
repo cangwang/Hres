@@ -89,12 +89,13 @@ void FilterController::transformFilterInThread(IOptions *option) {
     }
 }
 
-void FilterController::render() {
+bool FilterController::render() {
     //设置视屏大小
     if (option != nullptr) {
         glViewport(0, 0, option->getScaleWidth(), option->getScaleHeight());
     } else {
         HLOGE("option is null, no glViewport");
+        return false;
     }
 
     glClearColor(0, 0, 0, 0);
@@ -115,16 +116,23 @@ void FilterController::render() {
         if (listener && option) {
             listener->filterRenderFail(option, string("filterList is empty"));
         }
-//        return "filterList is empty";
+        return false;
     }
     if (fbFilter != nullptr) {
         fbFilter->renderFrame();
+    } else {
+        HLOGE("fbFilter is null");
+        return false;
     }
 
     glFlush();
     if (eglCore != nullptr) {
         eglCore->swapBuffer();
+    } else {
+        HLOGE("eglCore is null");
+        return false;
     }
+    return true;
 //    return "option is null";
 }
 
@@ -132,38 +140,42 @@ void FilterController::renderInThread() {
 //    render();
     //加锁
     unique_lock<mutex> lock(gMutex);
-    auto renderWork = [&]() -> void
+    auto renderWork = [&]() -> bool
     {
-        render();
+        return render();
     };
     if (pool != nullptr) {
-        pool->submit(renderWork);
+        auto result = pool->submit(renderWork);
+        if (result.get()) {
+            saveInThread();
+        } else {
+            HLOGE("render is fail");
+        }
     }
-    saveInThread();
+//    saveInThread();
 }
 
+// 保存图片
 void FilterController::saveInThread() {
-//    render();
     //加锁
-    unique_lock<mutex> lock(gMutex);
-    auto saveWork = [&](IOptions* option) -> string
+    auto saveWork = [&]() -> string
     {
         if (fbFilter != nullptr) {
-            return fbFilter->save(option);
+            return fbFilter->save();
         } else {
             return "filter is null";
         }
     };
     if (pool != nullptr) {
-        auto result = pool->submit(saveWork, option);
-        string error = result.get();
-        if (listener != nullptr) {
-            if (error.empty()) {
-                listener->filterRenderComplete(option);
-            } else {
-                listener->filterRenderFail(option, error);
-            }
-        }
+        auto result = pool->submit(saveWork);
+//        string error = result.get();
+//        if (listener != nullptr) {
+//            if (error.empty()) {
+//                listener->filterRenderComplete(option);
+//            } else {
+//                listener->filterRenderFail(option, error);
+//            }
+//        }
     }
 }
 

@@ -33,7 +33,7 @@ public:
     void transformFilter(IOptions* option);
     void transformFilterInThread(IOptions* option);
     void setListener(FilterListener* listener);
-    void render();
+    bool render();
     void renderInThread();
     void saveInThread();
     void release();

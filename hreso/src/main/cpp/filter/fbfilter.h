@@ -41,7 +41,7 @@ public:
     void setListener(FilterListener* listener);
     void drawPixelBuffer();
 
-    string save(IOptions* option);
+    string save();
 
 private:
     shared_ptr<GlFloatArray> vertexArray;

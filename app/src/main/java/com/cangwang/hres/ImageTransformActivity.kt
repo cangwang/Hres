@@ -27,7 +27,6 @@ class ImageTransformActivity: AppCompatActivity() {
         val selectPaths = intent.getSerializableExtra(PickConfig.INTENT_IMG_LIST_SELECT) as SelectModel
         val srcBitmap = BitmapFactory.decodeFile(selectPaths.path)
         btn_album_src.setImageBitmap(srcBitmap)
-        srcBitmap.recycle();
         HresJniUtil.nativeCreateTransformer("image", "", null)
         HresJniUtil.nativeSetListener(object : HresListener {
             override fun hresTransformStart(option: OptionParams) {
@@ -37,7 +36,6 @@ class ImageTransformActivity: AppCompatActivity() {
             override fun hresTransformComplete(option: OptionParams) {
                 val desBitmap = BitmapFactory.decodeFile(option.saveAddress)
                 btn_album_transform.setImageBitmap(desBitmap)
-                desBitmap.recycle();
             }
 
             override fun hresTransformError(option: OptionParams, errorTag: String) {

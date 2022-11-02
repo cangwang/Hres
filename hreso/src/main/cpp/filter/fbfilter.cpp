@@ -59,7 +59,6 @@ void FbFilter::renderFrame() {
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
         checkGLError("glDrawArrays");
         drawPixelBuffer();
-        saveInThread(option);
         glBindTexture(GL_TEXTURE_2D, GL_NONE);
 
 //        glEnable(GL_BLEND);
@@ -201,7 +200,7 @@ void FbFilter::drawPixelBuffer() {
     }
 }
 
-string FbFilter::save(IOptions* option) {
+string FbFilter::save() {
     string address;
     if (option != nullptr) {
         if (option->getSaveAddress().empty()) {
