@@ -21,7 +21,8 @@ GLuint LoadTextureUtil::loadTextureFromFile(const char *fileName, int *w, int *h
         unsigned char* data = stbi_load(fileName, w, h, n, 0);
 
         HLOGV("loadTexture fileName = %s,width = %d,height=%d,n=%d",fileName,*w,*h,*n);
-
+        //像素对齐，不然jpg图片会显示错位
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
         if(data != nullptr) {
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, *w, *h, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
             glBindTexture(GL_TEXTURE_2D, GL_NONE);
@@ -84,8 +85,9 @@ GLuint LoadTextureUtil::loadTextureFromOption(IOptions* option) {
         unsigned char* data = stbi_load(fileName, w, h, n, 0);
 
         HLOGV("loadTexture fileName = %s,width = %d,height=%d,n=%d",fileName,*w,*h,*n);
-
-        if(data != nullptr) {
+        //像素对齐，不然jpg图片会显示错位
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+        if (data != nullptr) {
             if (*n == 3) { //判断是jpg格式
                 glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, *w, *h, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
             } else if (*n == 4) {  //判断是png格式

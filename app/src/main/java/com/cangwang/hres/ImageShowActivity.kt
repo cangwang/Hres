@@ -42,7 +42,7 @@ class ImageShowActivity: AppCompatActivity(), TextureView.SurfaceTextureListener
             }
 
             override fun hresTransformComplete(option: OptionParams) {
-                val desBitmap = BitmapFactory.decodeFile(option.saveAddress)
+//                val desBitmap = BitmapFactory.decodeFile(option.saveAddress)
 //                btn_album_transform.setImageBitmap(desBitmap)
             }
 
@@ -50,17 +50,16 @@ class ImageShowActivity: AppCompatActivity(), TextureView.SurfaceTextureListener
                 Log.e(TAG, "$errorTag $option")
             }
         })
-//        surface.setOnFrameAvailableListener(this@ImageShowActivity)
         val option = OptionParams()
         option.address = selectPaths!!.path
-        option.scaleRatio = 1.0f
+        option.scaleRatio = 2.0f
+        val sList = option.address.split(".")
+        val dex = sList[sList.size - 1]
         val saveAddress = if(Build.BRAND == "Xiaomi"){ // 小米手机
-            Environment.getExternalStorageDirectory().path +"/DCIM/Camera/"+System.currentTimeMillis()+".png"
+            "${Environment.getExternalStorageDirectory().path}/DCIM/Camera/${System.currentTimeMillis()}.${dex}"
         }else{  // Meizu 、Oppo
-            Environment.getExternalStorageDirectory().path +"/DCIM/"+System.currentTimeMillis()+".png"
+            "${Environment.getExternalStorageDirectory().path}/DCIM/${System.currentTimeMillis()}.${dex}"
         }
-        option.saveAddress = saveAddress
-//        surface.updateTexImage()
         HresJniUtil.nativeTransform(option.toJson(), option)
     }
 

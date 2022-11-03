@@ -180,8 +180,6 @@ void FbFilter::drawPixelBuffer() {
         checkGLError("glReadBuffer");
         glBindBuffer(GL_PIXEL_PACK_BUFFER, pixelBuffer);
         checkGLError("glBindBuffer");
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 8);
-        checkGLError("glPixelStorei");
         glReadPixels(0, 0, option->getScaleWidth(), option->getScaleHeight(), GL_RGBA, GL_UNSIGNED_BYTE, NULL);
         checkGLError("glReadPixels");
 
@@ -258,18 +256,37 @@ bool FbFilter::saveImg(const string saveFileAddress,unsigned char* data,int widt
 //            return false;
 //        }
 //    } else if (channel == 4) {
-    if (stbi_write_png(saveFileAddress.c_str(), width, height, 4, data, 0)) {
-        HLOGV("save address = %s success", saveFileAddress.c_str());
-//            free(data);
-        memset(saveImgData, 0, imgSize);
-        return true;
-    } else {
-//            free(data);
-        memset(saveImgData, 0, imgSize);
-        HLOGE("save fail address = %s fail", saveFileAddress.c_str());
-        return false;
+    if (saveFileAddress.find(".jpg")) {
+        if (stbi_write_jpg(saveFileAddress.c_str(), width, height, 4, data, 100)) {
+            HLOGV("save address = %s success", saveFileAddress.c_str());
+            memset(saveImgData, 0, imgSize);
+            return true;
+        } else {
+            memset(saveImgData, 0, imgSize);
+            HLOGE("save fail address = %s fail", saveFileAddress.c_str());
+            return false;
+        }
+    } else if (saveFileAddress.find(".png")){
+        if (stbi_write_png(saveFileAddress.c_str(), width, height, 4, data, 0)) {
+            HLOGV("save address = %s success", saveFileAddress.c_str());
+            memset(saveImgData, 0, imgSize);
+            return true;
+        } else {
+            memset(saveImgData, 0, imgSize);
+            HLOGE("save fail address = %s fail", saveFileAddress.c_str());
+            return false;
+        }
+    } else if (saveFileAddress.find(".bmp")){
+        if (stbi_write_bmp(saveFileAddress.c_str(), width, height, 4, data)) {
+            HLOGV("save address = %s success", saveFileAddress.c_str());
+            memset(saveImgData, 0, imgSize);
+            return true;
+        } else {
+            memset(saveImgData, 0, imgSize);
+            HLOGE("save fail address = %s fail", saveFileAddress.c_str());
+            return false;
+        }
     }
-//    }
 }
 
 void FbFilter::destroyPixelBuffers() {
