@@ -180,6 +180,8 @@ void FbFilter::drawPixelBuffer() {
         checkGLError("glReadBuffer");
         glBindBuffer(GL_PIXEL_PACK_BUFFER, pixelBuffer);
         checkGLError("glBindBuffer");
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 8);
+        checkGLError("glPixelStorei");
         glReadPixels(0, 0, option->getScaleWidth(), option->getScaleHeight(), GL_RGBA, GL_UNSIGNED_BYTE, NULL);
         checkGLError("glReadPixels");
 

@@ -146,6 +146,7 @@ RECENT REVISION HISTORY:
 //
 //     N=#comp     components
 //       1           grey
+//       1           grey
 //       2           grey, alpha
 //       3           red, green, blue
 //       4           red, green, blue, alpha

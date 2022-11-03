@@ -86,7 +86,13 @@ GLuint LoadTextureUtil::loadTextureFromOption(IOptions* option) {
         HLOGV("loadTexture fileName = %s,width = %d,height=%d,n=%d",fileName,*w,*h,*n);
 
         if(data != nullptr) {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, *w, *h, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+            if (*n == 3) { //判断是jpg格式
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, *w, *h, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+            } else if (*n == 4) {  //判断是png格式
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, *w, *h, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+            } else{
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, *w, *h, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+            }
             glBindTexture(GL_TEXTURE_2D, GL_NONE);
             stbi_image_free(data);
             option->textureId = textureHandler;
