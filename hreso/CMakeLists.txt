@@ -64,6 +64,67 @@ find_library( # Sets the name of the path variable.
               # you want CMake to locate.
               log )
 
+
+include_directories(libs/arm64-v8a/include)
+set(DIR ../../../../libs/arm64-v8a/lib)
+
+add_library(avcodec
+        SHARED
+        IMPORTED)
+set_target_properties(avcodec
+        PROPERTIES IMPORTED_LOCATION
+        ${DIR}/libavcodec.so)
+
+add_library(avdevice
+        SHARED
+        IMPORTED)
+set_target_properties(avdevice
+        PROPERTIES IMPORTED_LOCATION
+        ${DIR}/libavdevice.so)
+
+add_library(avformat
+        SHARED
+        IMPORTED)
+set_target_properties(avformat
+        PROPERTIES IMPORTED_LOCATION
+        ${DIR}/libavformat.so)
+
+add_library(avutil
+        SHARED
+        IMPORTED)
+set_target_properties(avutil
+        PROPERTIES IMPORTED_LOCATION
+        ${DIR}/libavutil.so)
+
+add_library(postproc
+        SHARED
+        IMPORTED)
+set_target_properties(postproc
+        PROPERTIES IMPORTED_LOCATION
+        ${DIR}/libpostproc.so)
+
+add_library(swresample
+        SHARED
+        IMPORTED)
+set_target_properties(swresample
+        PROPERTIES IMPORTED_LOCATION
+        ${DIR}/libswresample.so)
+
+add_library(swscale
+        SHARED
+        IMPORTED)
+set_target_properties(swscale
+        PROPERTIES IMPORTED_LOCATION
+        ${DIR}/libswscale.so)
+
+add_library(avfilter
+        SHARED
+        IMPORTED)
+set_target_properties(avfilter
+        PROPERTIES IMPORTED_LOCATION
+        ${DIR}/libavfilter.so)
+
+
 # Specifies libraries CMake should link to your target library. You
 # can link multiple libraries, such as libraries you define in this
 # build script, prebuilt third-party libraries, or system libraries.
@@ -72,13 +133,21 @@ find_library( # Sets the name of the path variable.
 #SET_TARGET_PROPERTIES(yyeva2 PROPERTIES LINK_FLAGS "-Wl,-s,--gc-sections")
 
 target_link_libraries( # Specifies the target library.
-                       hres
-                       android
-                       GLESv3
-                       EGL
-                       parson
+        hres
+        android
+        GLESv3
+        EGL
+        parson
+        avfilter
+        avcodec
+        avdevice
+        avformat
+        avutil
+        postproc
+        swresample
+        swscale
 
-                       # Links the target library to the log library
-                       # included in the NDK.
-                       ${log-lib} )
+        # Links the target library to the log library
+        # included in the NDK.
+        ${log-lib} )
 

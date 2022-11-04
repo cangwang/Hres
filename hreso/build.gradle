@@ -18,11 +18,13 @@ android {
         externalNativeBuild {
             cmake {
                 cppFlags "-std=c++17 -frtti -fexceptions"
-                abiFilters = ["armeabi-v7a","arm64-v8a", 'x86', 'x86_64']
+//                abiFilters = ["armeabi-v7a","arm64-v8a", 'x86', 'x86_64']
+                abiFilters = ["arm64-v8a"]
             }
         }
         ndk {
-            setAbiFilters(['armeabi-v7a', 'arm64-v8a','x86', 'x86_64'])
+//            setAbiFilters(['armeabi-v7a', 'arm64-v8a','x86', 'x86_64'])
+            setAbiFilters(['arm64-v8a'])
         }
     }
 
