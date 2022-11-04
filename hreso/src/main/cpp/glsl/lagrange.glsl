@@ -4,35 +4,33 @@ in highp vec2 v_TexCoordinate;
 uniform sampler2D uTexture;
 out vec4 glFragColor;
 
-float c_textureSize = 64.0;
+uniform float w;
+uniform float h;
+float c_textureSize = 0.0;
+
+float c_onePixel = 0.0;
+float c_twoPixels = 0.0;
+
 float c_x0 = -1.0;
 float c_x1 =  0.0;
 float c_x2 =  1.0;
 float c_x3 =  2.0;
 
-vec3 CubicLagrange (vec3 A, vec3 B, vec3 C, vec3 D, float t)
-{
+vec3 CubicLagrange (vec3 A, vec3 B, vec3 C, vec3 D, float t) {
 	return
-	A *
-	(
+	A * (
 	(t - c_x1) / (c_x0 - c_x1) *
 	(t - c_x2) / (c_x0 - c_x2) *
-	(t - c_x3) / (c_x0 - c_x3)
-	) +
-	B *
-	(
+	(t - c_x3) / (c_x0 - c_x3)) +
+	B * (
 	(t - c_x0) / (c_x1 - c_x0) *
 	(t - c_x2) / (c_x1 - c_x2) *
-	(t - c_x3) / (c_x1 - c_x3)
-	) +
-	C *
-	(
+	(t - c_x3) / (c_x1 - c_x3)) +
+	C * (
 	(t - c_x0) / (c_x2 - c_x0) *
 	(t - c_x1) / (c_x2 - c_x1) *
-	(t - c_x3) / (c_x2 - c_x3)
-	) +
-	D *
-	(
+	(t - c_x3) / (c_x2 - c_x3)) +
+	D * (
 	(t - c_x0) / (c_x3 - c_x0) *
 	(t - c_x1) / (c_x3 - c_x1) *
 	(t - c_x2) / (c_x3 - c_x2)
@@ -40,8 +38,7 @@ vec3 CubicLagrange (vec3 A, vec3 B, vec3 C, vec3 D, float t)
 }
 
 //=======================================================================================
-vec3 BicubicLagrangeTextureSample (vec2 P)
-{
+vec3 BicubicLagrangeTextureSample (vec2 P) {
 	vec2 pixel = P * c_textureSize + 0.5;
 
 	vec2 frac = fract(pixel);
@@ -77,5 +74,8 @@ vec3 BicubicLagrangeTextureSample (vec2 P)
 
 
 void main() {
+	c_textureSize = sqrt(w*h);
+	c_onePixel = (1.0 / c_textureSize);
+	c_twoPixels = (2.0 / c_textureSize);
 	glFragColor = vec4(BicubicLagrangeTextureSample(v_TexCoordinate), 1.0);
 }

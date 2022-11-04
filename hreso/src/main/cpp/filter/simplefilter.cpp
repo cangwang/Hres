@@ -4,27 +4,22 @@
 
 #include "simplefilter.h"
 
-SimpleFilter::SimpleFilter(): vertexArray(new GlFloatArray()), rgbaArray(new GlFloatArray()) {
-    initFilter();
+SimpleFilter::SimpleFilter(string type): vertexArray(new GlFloatArray()), rgbaArray(new GlFloatArray()) {
+    setShader(type);
 }
 
 SimpleFilter::~SimpleFilter() {
     vertexArray = nullptr;
     rgbaArray = nullptr;
+    VERTEX_SHADER.clear();
+    FRAGMENT_SHADER.clear();
 }
 
-void SimpleFilter::initFilter() {
-//    VERTEX_SHADER = SHADER_STR(
-//            in vec4 vPosition;
-//            in vec4 vTexCoordinate;
-//            out vec2 v_TexCoordinate;
-//            void main() {
-//                v_TexCoordinate = vec2(vTexCoordinate.x, vTexCoordinate.y);
-//                gl_Position = vPosition;
-//            }
-//    );
+void SimpleFilter::setShader(string type) {
+    VERTEX_SHADER.clear();
+    FRAGMENT_SHADER.clear();
 
-    char VERTEX_SHADER[] =
+    VERTEX_SHADER =
             "#version 300 es\n"
             "in vec4 vPosition;\n"
             "in vec4 vTexCoordinate;\n"
@@ -35,17 +30,23 @@ void SimpleFilter::initFilter() {
             "gl_Position = vPosition;\n"
             "}";
 
-    char FRAGMENT_SHADER[] = "#version 300 es\n"
-//                      "#extension GL_OES_EGL_image_external_essl3 : require"
-                      "precision mediump float;\n"
-                      "uniform sampler2D uTexture;\n"
-                      "in vec2 v_TexCoordinate;\n"
-                      "out vec4 vFragColor;\n"
-                      "\n"
-                      "void main () {\n"
-                      "vFragColor = texture(uTexture, v_TexCoordinate);\n"
-//                      "vFragColor = vec4(1.0,0.2,0.5,1.0);\n"
-                      "}";
+    if (type == "simple") {
+        FRAGMENT_SHADER = "#version 300 es\n"
+                          //                      "#extension GL_OES_EGL_image_external_essl3 : require"
+                          "precision mediump float;\n"
+                          "uniform sampler2D uTexture;\n"
+                          "in vec2 v_TexCoordinate;\n"
+                          "out vec4 vFragColor;\n"
+                          "\n"
+                          "void main () {\n"
+                          "vFragColor = texture(uTexture, v_TexCoordinate);\n"
+                          //                      "vFragColor = vec4(1.0,0.2,0.5,1.0);\n"
+                          "}";
+    }
+    initFilter();
+}
+
+void SimpleFilter::initFilter() {
     shaderProgram = ShaderUtil::createProgram(VERTEX_SHADER, FRAGMENT_SHADER);
     uTextureLocation = glGetUniformLocation(shaderProgram, "uTexture");
     positionLocation = glGetAttribLocation(shaderProgram, "vPosition");
@@ -80,8 +81,9 @@ void SimpleFilter::clearFrame() {
 }
 
 void SimpleFilter::destroyFilter() {
-//    VERTEX_SHADER.clear();
-//    FRAGMENT_SHADER.clear();
+    VERTEX_SHADER.clear();
+    FRAGMENT_SHADER.clear();
+    releaseTexture();
 }
 
 void SimpleFilter::setOptions(IOptions *options) {

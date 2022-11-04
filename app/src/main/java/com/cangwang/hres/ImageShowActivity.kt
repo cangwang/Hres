@@ -1,6 +1,5 @@
 package com.cangwang.hres
 
-import android.graphics.BitmapFactory
 import android.graphics.SurfaceTexture
 import android.os.Build
 import android.os.Bundle
@@ -53,13 +52,15 @@ class ImageShowActivity: AppCompatActivity(), TextureView.SurfaceTextureListener
         val option = OptionParams()
         option.address = selectPaths!!.path
         option.scaleRatio = 2.0f
+        option.filterType = "hermite"
         val sList = option.address.split(".")
         val dex = sList[sList.size - 1]
-        val saveAddress = if(Build.BRAND == "Xiaomi"){ // 小米手机
+        val saveAddress = if (Build.BRAND == "Xiaomi"){ // 小米手机
             "${Environment.getExternalStorageDirectory().path}/DCIM/Camera/${System.currentTimeMillis()}.${dex}"
         }else{  // Meizu 、Oppo
             "${Environment.getExternalStorageDirectory().path}/DCIM/${System.currentTimeMillis()}.${dex}"
         }
+        option.saveAddress = saveAddress
         HresJniUtil.nativeTransform(option.toJson(), option)
     }
 

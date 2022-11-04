@@ -4,7 +4,13 @@ in highp vec2 v_TexCoordinate;
 uniform sampler2D uTexture;
 out vec4 glFragColor;
 
-float c_textureSize = 64.0;
+uniform float w;
+uniform float h;
+float c_textureSize = 0.0;
+
+float c_onePixel = 0.0;
+float c_twoPixels = 0.0;
+
 float c_x0 = -1.0;
 float c_x1 =  0.0;
 float c_x2 =  1.0;
@@ -60,5 +66,8 @@ vec3 BicubicHermiteTextureSample (vec2 P)
 }
 
 void main() {
+	c_textureSize = sqrt(w*h);
+	c_onePixel = (1.0 / c_textureSize);
+	c_twoPixels = (2.0 / c_textureSize);
 	glFragColor = vec4(BicubicHermiteTextureSample(v_TexCoordinate), 1.0);
 }

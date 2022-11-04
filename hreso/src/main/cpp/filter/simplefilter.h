@@ -13,7 +13,7 @@
 
 class SimpleFilter : public IFilter {
 public:
-    SimpleFilter();
+    SimpleFilter(string type);
     ~SimpleFilter();
 
     void initFilter() override;
@@ -50,8 +50,10 @@ private:
     int surfaceWidth = 0;
     int surfaceHeight = 0;
 
-//    string VERTEX_SHADER;
-//    string FRAGMENT_SHADER;
+    string VERTEX_SHADER;
+    string FRAGMENT_SHADER;
+
+    void setShader(string type);
 };
 
 

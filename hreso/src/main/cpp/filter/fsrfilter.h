@@ -12,7 +12,7 @@
 
 class FsrFilter: public IFilter {
 public:
-    FsrFilter();
+    FsrFilter(string type);
     ~FsrFilter();
 
     void initFilter() override;
@@ -51,6 +51,11 @@ private:
 
     float surfaceWidth;
     float surfaceHeight;
+
+    string VERTEX_SHADER;
+    string FRAGMENT_SHADER;
+
+    void setShader(string type);
 };
 
 

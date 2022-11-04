@@ -57,11 +57,11 @@ void FilterController::transformFilter(IOptions *option) {
     LoadTextureUtil::loadTextureFromOption(option);
     if (filterName != option->getFilterType()) {  //滤镜模式不一样
         IFilter* filter = nullptr;
-        if (option->getFilterType() == "simple") {
-            filter = new SimpleFilter();
-
-        } else if (option->getFilterType() == "fsr"){
-            filter = new FsrFilter();
+        string type = option->getFilterType();
+        if (type == "simple") {
+            filter = new SimpleFilter("simple");
+        } else if (type == "hermite" || type == "lagrange" || type == "fsr") {
+            filter = new FsrFilter(type);
         }
         filter->setOptions(option);
         filterList.push_front(filter);
