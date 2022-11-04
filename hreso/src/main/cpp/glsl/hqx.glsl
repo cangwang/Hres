@@ -5,7 +5,7 @@ uniform sampler2D uTexture;
 out vec4 glFragColor;
 
 //upscaling multiplier amount
-#define UPSCALE 10.
+uniform float upscale;
 
 //image mipmap level, for base upscaling
 #define ML 0
@@ -17,16 +17,16 @@ out vec4 glFragColor;
 float LINE_THICKNESS;
 
 //anti aliasing scaling, smaller value make lines more blurry
-#define AA_SCALE (UPSCALE*1.)
+//#define AA_SCALE (upscale*1.)
 
 bool diag(inout vec4 sum, vec2 uv, vec2 p1, vec2 p2) {
-	vec4 v1 = texelFetch(uTexture,ivec2(uv+vec2(p1.x,p1.y)),ML),
-	v2 = texelFetch(uTexture,ivec2(uv+vec2(p2.x,p2.y)),ML);
+	vec4 v1 = texelFetch(uTexture,ivec2(uv + vec2(p1.x, p1.y)),ML),
+	v2 = texelFetch(uTexture,ivec2(uv + vec2(p2.x, p2.y)),ML);
 	if (length(v1-v2) < THRESHOLD) {
 		vec2 dir = p2-p1,
 		lp = uv-(floor(uv+p1)+.5);
 		dir = normalize(vec2(dir.y,-dir.x));
-		float l = clamp((LINE_THICKNESS-dot(lp,dir))*AA_SCALE,0.,1.);
+		float l = clamp((LINE_THICKNESS - dot(lp,dir)) * upscale, 0., 1.);
 		sum = mix(sum,v1,l);
 		return true;
 	}
@@ -34,10 +34,10 @@ bool diag(inout vec4 sum, vec2 uv, vec2 p1, vec2 p2) {
 }
 
 void main() {
-	vec2 ip = v_TexCoordinate/UPSCALE;
+	vec2 ip = v_TexCoordinate/upscale;
 
 	//start with nearest pixel as 'background'
-	vec4 s = texelFetch(uTexture,ivec2(ip),ML);
+	vec4 s = texelFetch(uTexture,ivec2(ip), ML);
 
 	//draw anti aliased diagonal lines of surrounding pixels as 'foreground'
 	LINE_THICKNESS = .4;

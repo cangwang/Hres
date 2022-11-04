@@ -34,7 +34,7 @@ add_library( # Sets the name of the library.
         src/main/cpp/transform/imagehrestransformer.cpp
         src/main/cpp/transform/optionparser.cpp
         src/main/cpp/transform/listenermanager.cpp
-        src/main/cpp/filter/bilinearfilter.cpp
+        src/main/cpp/filter/hqxfilter.cpp
         src/main/cpp/filter/simplefilter.cpp
         src/main/cpp/filter/filtercontroller.cpp
         src/main/cpp/filter/filterlistener.cpp

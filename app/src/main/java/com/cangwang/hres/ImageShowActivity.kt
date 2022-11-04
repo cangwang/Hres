@@ -52,7 +52,7 @@ class ImageShowActivity: AppCompatActivity(), TextureView.SurfaceTextureListener
         val option = OptionParams()
         option.address = selectPaths!!.path
         option.scaleRatio = 2.0f
-        option.filterType = "hermite"
+        option.filterType = "fsr"
         val sList = option.address.split(".")
         val dex = sList[sList.size - 1]
         val saveAddress = if (Build.BRAND == "Xiaomi"){ // 小米手机

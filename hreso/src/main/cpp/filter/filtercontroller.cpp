@@ -59,9 +59,11 @@ void FilterController::transformFilter(IOptions *option) {
         IFilter* filter = nullptr;
         string type = option->getFilterType();
         if (type == "simple") {
-            filter = new SimpleFilter("simple");
+            filter = new SimpleFilter(type);
         } else if (type == "hermite" || type == "lagrange" || type == "fsr") {
             filter = new FsrFilter(type);
+        } else if (type == "hqx") {
+            filter = new HqxFilter(type);
         }
         filter->setOptions(option);
         filterList.push_front(filter);
