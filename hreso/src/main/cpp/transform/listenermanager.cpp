@@ -21,7 +21,7 @@ void ListenerManager::hresTransformStart(jobject option) {
     }
     jclass clazz_listener = env->GetObjectClass(listener);
     jmethodID methodId = env->GetMethodID(clazz_listener, "hresTransformStart",
-                                          "(Lcom/cangwang/hreso/bean/OptionParams;)V");
+                                          "(Lcom/cangwang/hreso/bean/ImageOptionParams;)V");
     env->CallVoidMethod(listener, methodId, option);
     if (isNeedDetach) {
         javaVM->DetachCurrentThread();
@@ -37,7 +37,7 @@ void ListenerManager::hresTransformComplete(jobject option) {
     }
     jclass clazz_listener = env->GetObjectClass(listener);
     jmethodID methodId = env->GetMethodID(clazz_listener, "hresTransformComplete",
-                                          "(Lcom/cangwang/hreso/bean/OptionParams;)V");
+                                          "(Lcom/cangwang/hreso/bean/ImageOptionParams;)V");
 //    jmethodID methodId = env->GetMethodID(clazz_listener, "hresTransformComplete",
 //                                          "()V");
     env->CallVoidMethod(listener, methodId, option);
@@ -56,7 +56,7 @@ void ListenerManager::hresTransformError(jobject option, string errorMsg) {
     }
     jstring jmsg = env->NewStringUTF(errorMsg.c_str());
     jclass clazz_listener = env->GetObjectClass(listener);
-    jmethodID methodId = env->GetMethodID(clazz_listener, "hresTransformError", "(Lcom/cangwang/hreso/bean/OptionParams;Ljava/lang/String;)V");
+    jmethodID methodId = env->GetMethodID(clazz_listener, "hresTransformError", "(Lcom/cangwang/hreso/bean/ImageOptionParams;Ljava/lang/String;)V");
     env->CallVoidMethod(listener, methodId, option, jmsg);
     env->DeleteLocalRef(jmsg);
     env->DeleteGlobalRef(option);

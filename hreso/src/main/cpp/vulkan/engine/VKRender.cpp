@@ -187,10 +187,12 @@ int VKRender::createCommandPool(VKDeviceManager *deviceInfo, VKSwapChainManager 
 }
 
 int VKRender::deleteCommandPool(VKDeviceManager *deviceInfo) {
-    vkFreeCommandBuffers(deviceInfo->device,cmdPool, cmdBufferLen, cmdBuffer.get());
-    vkDestroyCommandPool(deviceInfo->device, cmdPool, nullptr);
-    vkDestroyFence(deviceInfo->device, fence, nullptr);
-    vkDestroySemaphore(deviceInfo->device, semaphore, nullptr);
+    if (deviceInfo->device != nullptr) {
+        vkFreeCommandBuffers(deviceInfo->device, cmdPool, cmdBufferLen, cmdBuffer.get());
+        vkDestroyCommandPool(deviceInfo->device, cmdPool, nullptr);
+        vkDestroyFence(deviceInfo->device, fence, nullptr);
+        vkDestroySemaphore(deviceInfo->device, semaphore, nullptr);
+    }
     return VK_SUCCESS;
 }
 

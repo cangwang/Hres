@@ -36,7 +36,7 @@ void ImageVulkanHresTransformer::transformOption(IOptions *options) {
 }
 
 void ImageVulkanHresTransformer::setListener(FilterListener *listener) {
-
+    this->listener = listener;
 }
 
 void ImageVulkanHresTransformer::transform() {
@@ -45,12 +45,12 @@ void ImageVulkanHresTransformer::transform() {
         return;
     }
 
-    if (image != nullptr) {
+    if (image == nullptr) {
         HLOGE("transform,image data is null");
         return;
     }
 
-    if (options != nullptr) {
+    if (options == nullptr) {
         HLOGE("transform, option is null");
         return;
     }
@@ -66,4 +66,5 @@ void ImageVulkanHresTransformer::transform() {
 void ImageVulkanHresTransformer::release() {
     engine->deleteTextures();
     options = nullptr;
+    listener = nullptr;
 }

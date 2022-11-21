@@ -10,6 +10,10 @@
 #include <vulkan/engine/VKEngineRenderer.h>
 #include <util/loadtextureutil.h>
 
+#define LOG_TAG "ImageVulkanHresTransformer"
+#define HLOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
+#define HLOGV(...) __android_log_print(ANDROID_LOG_VERBOSE, LOG_TAG, __VA_ARGS__)
+
 using namespace std;
 class ImageVulkanHresTransformer: public HresBaseTransformer {
 public:
@@ -29,6 +33,7 @@ private:
     size_t height;
     unsigned char* image;
     IOptions* options;
+    FilterListener* listener;
 };
 
 
