@@ -57,6 +57,11 @@ public:
             return srcHeight;
         }
     };
+
+    virtual int getRotation() {
+        return rotation;
+    }
+
     virtual bool getFront() {
         return front;
     };
@@ -86,6 +91,7 @@ protected:
     float scaleRatio;
     int scaleWidth;
     int scaleHeight;
+    int rotation = 0;
     bool front;  // 是否插入队头
     bool async;
     string options;

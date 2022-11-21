@@ -10,7 +10,7 @@ import android.view.TextureView
 import android.view.Window
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
-import com.cangwang.hreso.bean.OptionParams
+import com.cangwang.hreso.bean.ImageOptionParams
 import com.cangwang.hreso.impl.HresListener
 import com.cangwang.hreso.util.HresJniUtil
 import com.werb.pickphotoview.model.SelectModel
@@ -36,20 +36,20 @@ class ImageShowActivity: AppCompatActivity(), TextureView.SurfaceTextureListener
         HresJniUtil.nativeCreateTransformer("showImage", "", s)
         HresJniUtil.nativeUpdateViewPoint(width, height)
         HresJniUtil.nativeSetListener(object : HresListener {
-            override fun hresTransformStart(option: OptionParams) {
+            override fun hresTransformStart(imageOption: ImageOptionParams) {
 
             }
 
-            override fun hresTransformComplete(option: OptionParams) {
+            override fun hresTransformComplete(imageOption: ImageOptionParams) {
 //                val desBitmap = BitmapFactory.decodeFile(option.saveAddress)
 //                btn_album_transform.setImageBitmap(desBitmap)
             }
 
-            override fun hresTransformError(option: OptionParams, errorTag: String) {
-                Log.e(TAG, "$errorTag $option")
+            override fun hresTransformError(imageOption: ImageOptionParams, errorTag: String) {
+                Log.e(TAG, "$errorTag $imageOption")
             }
         })
-        val option = OptionParams()
+        val option = ImageOptionParams()
         option.address = selectPaths!!.path
         option.scaleRatio = 2.0f
         option.filterType = "fsr"

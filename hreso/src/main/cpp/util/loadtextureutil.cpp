@@ -111,3 +111,18 @@ GLuint LoadTextureUtil::loadTextureFromOption(IOptions* option) {
         return -1;
     }
 }
+
+unsigned char* LoadTextureUtil::loadImageFromOption(IOptions* option) {
+
+    const char* fileName = option->getAddress().c_str();
+    int* w = &option->srcWidth;
+    int* h = &option->srcHeight;
+    int* n = &option->srcChannel;
+
+    //读取图片长宽高数据
+    unsigned char* data = stbi_load(fileName, w, h, n, 0);
+
+    HLOGV("loadTexture fileName = %s,width = %d,height=%d,n=%d",fileName,*w,*h,*n);
+
+    return data;
+}

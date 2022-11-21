@@ -5,7 +5,7 @@
 #ifndef HRES_OPTIONPARSER_H
 #define HRES_OPTIONPARSER_H
 
-#include <transform/ioptions.h>
+#include <src/main/cpp/bean/ioptions.h>
 #include <android/log.h>
 #include <string>
 

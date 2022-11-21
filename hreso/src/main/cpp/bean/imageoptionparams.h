@@ -5,7 +5,7 @@
 #ifndef HRES_IMAGEOPTIONPARAMS_H
 #define HRES_IMAGEOPTIONPARAMS_H
 
-#include <transform/ioptions.h>
+#include <src/main/cpp/bean/ioptions.h>
 #include <android/log.h>
 
 #define LOG_TAG "ImageOptionParams"

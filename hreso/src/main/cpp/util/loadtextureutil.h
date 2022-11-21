@@ -9,7 +9,7 @@
 #include <GLES3/gl3ext.h>
 #include <util/stb_image.h>
 #include <android/log.h>
-#include <transform/ioptions.h>
+#include <src/main/cpp/bean/ioptions.h>
 
 #define LOG_TAG "LoadTextureUtil"
 #define HLOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
@@ -19,6 +19,7 @@ using namespace std;
 class LoadTextureUtil {
 public:
     static GLuint loadTextureFromFile(const char *fileName, int *w, int *h,int *n);
+    static unsigned char* loadImageFromOption(IOptions* options);
     static GLuint loadTextureFromOption(IOptions* options);
     static void loadWidthHeightFromOption(IOptions* options);
 };

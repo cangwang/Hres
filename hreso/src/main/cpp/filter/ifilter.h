@@ -6,7 +6,7 @@
 #define HRES_IFILTER_H
 
 #include <GLES3/gl3.h>
-#include <transform/ioptions.h>
+#include <src/main/cpp/bean/ioptions.h>
 #include <util/shaderutil.h>
 #include <util/glfloatarray.h>
 #include <util/vertexutil.h>

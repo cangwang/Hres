@@ -5,7 +5,7 @@
 #ifndef HRES_FILTERCONTROLLER_H
 #define HRES_FILTERCONTROLLER_H
 
-#include <transform/ioptions.h>
+#include <src/main/cpp/bean/ioptions.h>
 #include <filter/ifilter.h>
 #include <filter/simplefilter.h>
 #include <filter/fsrfilter.h>

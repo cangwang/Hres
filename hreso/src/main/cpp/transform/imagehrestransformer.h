@@ -5,22 +5,23 @@
 #ifndef HRES_IMAGEHRESTRANSFORMER_H
 #define HRES_IMAGEHRESTRANSFORMER_H
 
-#include <transform/ioptions.h>
+#include <src/main/cpp/bean/ioptions.h>
 #include <list>
 #include <filter/filtercontroller.h>
 #include <filter/filterlistener.h>
+#include <transform/HresBaseTransformer.h>
 
 using namespace std;
-class ImageHresTransformer {
+class ImageHresTransformer : public HresBaseTransformer {
 public:
     ImageHresTransformer();
     ~ImageHresTransformer();
-    void setWindow(ANativeWindow* window);
-    void updateViewPoint(int width, int height);
-    void transformOption(IOptions* options);
-    void setListener(FilterListener* listener);
-    void transform();
-    void release();
+    void setWindow(ANativeWindow* window) override;
+    void updateViewPoint(int width, int height) override;
+    void transformOption(IOptions* options) override;
+    void setListener(FilterListener* listener) override;
+    void transform() override;
+    void release() override;
 
 private:
     shared_ptr<FilterController> filterController;

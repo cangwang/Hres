@@ -8,11 +8,13 @@
 #include <android/log.h>
 #include <string>
 #include <deque>
-#include <transform/ioptions.h>
+#include <src/main/cpp/bean/ioptions.h>
 #include <transform/imagehrestransformer.h>
+#include <transform/ImageVulkanHresTransformer.h>
 #include <egl/eglcore.h>
 #include <transform/optionparser.h>
 #include <transform/listenermanager.h>
+#include <bean/engineoption.h>
 #include <jni.h>
 
 #define LOG_TAG "HresTransformer"
@@ -30,6 +32,7 @@ public:
     void transform();
     void release();
     void setListener(ListenerManager* listenerManager);
+    void setEngineOption(string engineOption);
 
 private:
     void filterRenderComplete(IOptions *options) override;
@@ -39,10 +42,11 @@ private:
 private:
     shared_ptr<OptionParser> optionParser;
     shared_ptr<deque<IOptions*>> optionsList;
-    shared_ptr<ImageHresTransformer> imageHresTransformer;
+    shared_ptr<HresBaseTransformer> transformer;
     ListenerManager* listenerManager;
     bool removeOptions(string address);
     bool isTransforming = false;
+    EngineOption* engineOption;
 };
 
 

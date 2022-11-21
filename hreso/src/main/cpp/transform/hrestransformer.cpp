@@ -12,16 +12,35 @@ HresTransformer::~HresTransformer() {
     release();
 }
 
-void HresTransformer::setWindow(ANativeWindow *window) {
-    if (imageHresTransformer == nullptr) {
-        imageHresTransformer = make_shared<ImageHresTransformer>();
+void HresTransformer::setEngineOption(string option) {
+    if (!option.empty()) {
+        engineOption = new EngineOption();
+        engineOption->setOptions(option);
+        if (engineOption->transformType == "img") {
+            if (engineOption->useVulkan) {
+                transformer = make_shared<ImageVulkanHresTransformer>();
+            } else {
+                transformer = make_shared<ImageHresTransformer>();
+            }
+        }
+    } else {
+        HLOGE("setEngineOption, option is null");
     }
-    imageHresTransformer->setWindow(window);
+}
+
+void HresTransformer::setWindow(ANativeWindow *window) {
+    if (transformer != nullptr) {
+        transformer->setWindow(window);
+    } else {
+        HLOGE("setWindow, please setEngineOption first");
+    }
 }
 
 void HresTransformer::updateViewPoint(int width, int height) {
-    if (imageHresTransformer != nullptr) {
-        imageHresTransformer->updateViewPoint(width, height);
+    if (transformer != nullptr) {
+        transformer->updateViewPoint(width, height);
+    } else {
+        HLOGE("updateViewPoint,please setEngineOption first");
     }
 }
 
@@ -54,12 +73,13 @@ void HresTransformer::transform() {
                 listenerManager->hresTransformStart(options->getObj());
             }
             if (options->getType() == 1) {  //类型为图片
-                if (imageHresTransformer == nullptr) {
-                    imageHresTransformer = make_shared<ImageHresTransformer>();
+                if (transformer != nullptr) {
+                    transformer->setListener(this);
+                    transformer->transformOption(options);
+                    transformer->transform();
+                } else {
+                    HLOGE("updateViewPoint,please setEngineOption first");
                 }
-                imageHresTransformer->setListener(this);
-                imageHresTransformer->transformOption(options);
-                imageHresTransformer->transform();
             }
         }
     } else {
@@ -72,9 +92,9 @@ void HresTransformer::release() {
     if (optionParser != nullptr) {
         optionParser = nullptr;
     }
-    if (imageHresTransformer != nullptr) {
-        imageHresTransformer->release();
-        imageHresTransformer = nullptr;
+    if (transformer != nullptr) {
+        transformer->release();
+        transformer = nullptr;
     }
     if (listenerManager != nullptr) {
         listenerManager = nullptr;

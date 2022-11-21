@@ -1,13 +1,13 @@
 package com.cangwang.hreso.impl
 
-import com.cangwang.hreso.bean.OptionParams
+import com.cangwang.hreso.bean.ImageOptionParams
 
 interface HresListener {
 
-    fun hresTransformStart(option: OptionParams)
+    fun hresTransformStart(imageOption: ImageOptionParams)
 
-    fun hresTransformComplete(option: OptionParams)
+    fun hresTransformComplete(imageOption: ImageOptionParams)
 
-    fun hresTransformError(option: OptionParams, errorTag: String)
+    fun hresTransformError(imageOption: ImageOptionParams, errorTag: String)
 
 }

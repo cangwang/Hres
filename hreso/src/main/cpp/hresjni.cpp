@@ -6,13 +6,13 @@
 #include <android/log.h>
 #include <android/bitmap.h>
 #include <android/native_window_jni.h>
-#include <transform/imageoptionparams.h>
+#include <src/main/cpp/bean/imageoptionparams.h>
 #include <transform/hrestransformer.h>
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <util/stb_image.h>
 #include <util/stb_image_write.h>
-#include <transform/imageoptionparams.h>
+#include <src/main/cpp/bean/imageoptionparams.h>
 
 #define LOG_TAG "HRESJNI"
 #define HLOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
@@ -27,20 +27,23 @@ extern "C" {
 
 JNIEXPORT void JNICALL HRES(nativeCreateTransformer) (
         JNIEnv *env,
-        jobject instance, jstring tag, jstring optionParams, jobject surface) {
+        jobject instance, jstring tag, jstring engineOptionParams, jobject surface) {
     HLOGV("nativeCreateTransformer");
     if (hresTransformer == nullptr) {
         hresTransformer = make_unique<HresTransformer>();
-        if (surface != nullptr) {
-            //创建window
-            ANativeWindow *window = ANativeWindow_fromSurface(env, surface);
-            if (window == nullptr) {
-                ELOGE("window is nullptr");
-            } else {
-                hresTransformer->setWindow(window);
-            }
+    }
+    const char* optionsStr = env->GetStringUTFChars(engineOptionParams, JNI_FALSE);
+    hresTransformer->setEngineOption(optionsStr);
+    if (surface != nullptr) {
+        //创建window
+        ANativeWindow *window = ANativeWindow_fromSurface(env, surface);
+        if (window == nullptr) {
+            ELOGE("window is nullptr");
+        } else {
+            hresTransformer->setWindow(window);
         }
     }
+    env->ReleaseStringUTFChars(engineOptionParams, optionsStr);
 }
 
 JNIEXPORT void JNICALL HRES(nativeUpdateViewPoint) (

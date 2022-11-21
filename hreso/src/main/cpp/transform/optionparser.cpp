@@ -3,7 +3,7 @@
 //
 
 #include "optionparser.h"
-#include <transform/imageoptionparams.h>
+#include <src/main/cpp/bean/imageoptionparams.h>
 
 IOptions* OptionParser::parseOptions(string options, jobject op) {
     if (options.empty()) {

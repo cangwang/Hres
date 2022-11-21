@@ -28,6 +28,7 @@ void ImageOptionParams::setOptions(string options, jobject op) {
         scaleRatio = (float)json_object_get_number(jsonObject, "scaleRatio");
         scaleWidth = (int)json_object_get_number(jsonObject, "scaleWidth");
         scaleHeight = (int)json_object_get_number(jsonObject, "scaleHeight");
+        rotation = (int)json_object_get_number(jsonObject, "rotation");
         front = json_object_get_boolean(jsonObject, "front");
         async = json_object_get_boolean(jsonObject, "async");
     }
