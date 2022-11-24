@@ -232,8 +232,8 @@ int VulkanFilter::createPipeline(VkRenderPass renderPass) {
     VkPipelineDynamicStateCreateInfo dynamicState = vks::pipelineDynamicStateCreateInfo(dynamicStateEnables);
     //shader模型
     VkShaderModule vertexShader, fragmentShader;
-    buildShader(pVertexShader, VK_SHADER_STAGE_VERTEX_BIT, context.device, &vertexShader);
-    buildShader(pFragShader, VK_SHADER_STAGE_FRAGMENT_BIT, context.device, &fragmentShader);
+    CALL_VK(buildShader(pVertexShader, VK_SHADER_STAGE_VERTEX_BIT, context.device, &vertexShader))
+    CALL_VK(buildShader(pFragShader, VK_SHADER_STAGE_FRAGMENT_BIT, context.device, &fragmentShader))
 
     //shader创建状态
     VkPipelineShaderStageCreateInfo shaderStages[2]{

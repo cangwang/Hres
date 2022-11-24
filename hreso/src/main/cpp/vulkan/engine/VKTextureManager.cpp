@@ -244,11 +244,91 @@ VkResult VKTextureManager::LoadTextureFromFile(VKDeviceManager *deviceInfo, AAss
 
 void VKTextureManager::createTexture(VKDeviceManager *deviceInfo, uint8_t *m_pBuffer, size_t m_width,
                                 size_t m_height) {
+    for (int i = 0; i < kTextureCount; i++) {
+        loadTexture(deviceInfo,m_pBuffer, texType[i], m_width, m_height, &textures[i], VK_IMAGE_USAGE_SAMPLED_BIT,
+                    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
 
+        const VkSamplerCreateInfo sampler {
+                .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+                .pNext = nullptr,
+                .magFilter = VK_FILTER_NEAREST,
+                .minFilter = VK_FILTER_NEAREST,
+                .mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST,
+                .addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+                .addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+                .addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+                .mipLodBias = 0.0f,
+                .maxAnisotropy = 1,
+                .compareOp = VK_COMPARE_OP_NEVER,
+                .minLod = 0.0f,
+                .maxLod = 0.0f,
+                .borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE,
+                .unnormalizedCoordinates = VK_FALSE,
+        };
+        VkImageViewCreateInfo view {
+                .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+                .pNext = nullptr,
+                .image = VK_NULL_HANDLE,
+                .viewType = VK_IMAGE_VIEW_TYPE_2D,
+                .format = kTextureFormat,
+                .components = {
+                        VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G,
+                        VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A},
+                .subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1},
+                .flags = 0,
+        };
+
+        CALL_VK(vkCreateSampler(deviceInfo->device, &sampler, nullptr, &textures[i].sampler));
+        view.image = textures[i].image;
+        CALL_VK(vkCreateImageView(deviceInfo->device, &view, nullptr, &textures[i].view));
+    }
 }
 
 void VKTextureManager::createImgTexture(VKDeviceManager *deviceInfo, AAssetManager *manager) {
+    const char* textTexFiles = "sample_tex.png";
 
+
+    LoadTextureFromFile(deviceInfo,manager,textTexFiles, &testTexture[0], VK_IMAGE_USAGE_SAMPLED_BIT,
+                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+
+    const VkSamplerCreateInfo sampler = {
+            .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+            .pNext = nullptr,
+            .magFilter = VK_FILTER_NEAREST,
+            .minFilter = VK_FILTER_NEAREST,
+            .mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST,
+            .addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+            .addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+            .addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+            .mipLodBias = 0.0f,
+            .maxAnisotropy = 1,
+            .compareOp = VK_COMPARE_OP_NEVER,
+            .minLod = 0.0f,
+            .maxLod = 0.0f,
+            .borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE,
+            .unnormalizedCoordinates = VK_FALSE,
+    };
+
+    VkImageViewCreateInfo view = {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+            .pNext = nullptr,
+            .image = VK_NULL_HANDLE,
+            .viewType = VK_IMAGE_VIEW_TYPE_2D,
+            .format = VK_FORMAT_R8G8B8A8_UNORM,
+            .components =
+                    {
+                            VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G,
+                            VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A,
+                    },
+            .subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1},
+            .flags = 0,
+    };
+
+    CALL_VK(vkCreateSampler(deviceInfo->device, &sampler, nullptr,
+                            &testTexture[0].sampler));
+    view.image = testTexture[0].image;
+    CALL_VK(
+            vkCreateImageView(deviceInfo->device, &view, nullptr, &testTexture[0].view));
 }
 
 VkResult VKTextureManager::loadTexture(VKDeviceManager *deviceInfo, uint8_t *buffer,

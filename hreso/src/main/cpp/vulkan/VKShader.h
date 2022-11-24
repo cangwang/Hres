@@ -5,8 +5,8 @@
 #ifndef HRES_VKSHADER_H
 #define HRES_VKSHADER_H
 
-static const char showVertexShader[] = "#versioin 400\n"
-                                       "#extension GL_ARB_separate_shader_objects: enable\n"
+static const char showVertexShader[] = "#version 400\n"
+                                       "#extension GL_ARB_separate_shader_objects : enable\n"
                                        "#extension GL_ARB_shading_language_420pack : enable\n"
                                        "layout (location = 0) in vec4 pos;\n"
                                        "layout (location = 1) in vec2 attr;\n"
@@ -25,16 +25,6 @@ static const char showFragShader[] = "#version 400\n"
                                      "void main() {\n"
                                      "   uFragColor = texture(tex, texcoord);\n"
                                      "}";
-
-static const char revertShowFragShader[] = "#version 400\n"
-                                           "#extension GL_ARB_separate_shader_objects : enable\n"
-                                           "#extension GL_ARB_shading_language_420pack : enable\n"
-                                           "layout (binding = 0) uniform sampler2D tex;\n"
-                                           "layout (location = 0) in vec2 texcoord;\n"
-                                           "layout (location = 0) out vec4 uFragColor;\n"
-                                           "void main() {\n"
-                                           "   uFragColor = texture(tex, 1.0 - texcoord);\n"
-                                           "}";
 
 static const char kVertexShader[] = \
     "#version 400\n \

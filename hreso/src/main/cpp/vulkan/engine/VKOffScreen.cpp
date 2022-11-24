@@ -14,27 +14,25 @@ void VKOffScreen::createOffscreen(VKDeviceManager *deviceInfo, VKSwapChainManage
     offscreenPass.descriptor.resize(num);
 
     for (int i = 0; i < num; ++i) {
-        VkImageCreateInfo image {
-            .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
-            .pNext = nullptr,
-            .imageType = VK_IMAGE_TYPE_2D,
-            .format = swapchain->displayFormat,
-            .extent = {
-                .width = static_cast<uint32_t>(offscreenPass.width),
-                .height =  static_cast<uint32_t>(offscreenPass.height),
-            },
-            .mipLevels = 1,
-            .arrayLayers = 1,
-            .samples = VK_SAMPLE_COUNT_1_BIT,
-            //TODO 此处可能有问题
-            .tiling = VK_IMAGE_TILING_OPTIMAL,
-            .usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT
-        };
-        VkMemoryAllocateInfo mem_alloc {
-            .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-            .pNext = nullptr,
-            .allocationSize = 0,
-            .memoryTypeIndex = 0
+        VkImageCreateInfo image = {};
+        image.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+        image.pNext = nullptr,
+        image.imageType = VK_IMAGE_TYPE_2D,
+        image.format = swapchain->displayFormat,
+        image.extent.width = static_cast<uint32_t>(offscreenPass.width),
+        image.extent.height = static_cast<uint32_t>(offscreenPass.height),
+        image.mipLevels = 1,
+        image.arrayLayers = 1,
+        image.samples = VK_SAMPLE_COUNT_1_BIT,
+                // 此处可能有问题
+        image.tiling = VK_IMAGE_TILING_OPTIMAL,
+        image.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+
+        VkMemoryAllocateInfo mem_alloc = {
+                .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+                .pNext = nullptr,
+                .allocationSize = 0,
+                .memoryTypeIndex = 0,
         };
 
         VkMemoryRequirements mem_reqs;
@@ -72,52 +70,48 @@ void VKOffScreen::createOffscreen(VKDeviceManager *deviceInfo, VKSwapChainManage
 
         CALL_VK(vkCreateImageView(deviceInfo->device, &colorImageView, nullptr,
                                   &offscreenPass.color[i].view))
-        //采样结构体
-        VkSamplerCreateInfo  samplerCreateInfo {
-            .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
-            .pNext = nullptr,
-            .magFilter = VK_FILTER_NEAREST,
-            .minFilter = VK_FILTER_NEAREST,
-            .mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST,
-            .addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-            .addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-            .addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-            .mipLodBias = 0.0f,
-            .maxAnisotropy = 1,
-            .compareOp = VK_COMPARE_OP_NEVER,
-            .minLod = 0.0f,
-            .maxLod = 0.0f,
-            .borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE,
-            .unnormalizedCoordinates = VK_FALSE
-        };
 
-        //创建采样体
-        CALL_VK(vkCreateSampler(deviceInfo->device, & samplerCreateInfo, nullptr, &offscreenPass.sampler[i]))
+        VkSamplerCreateInfo samplerCreateInfo = {};
+        samplerCreateInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+        samplerCreateInfo.pNext = nullptr;
+        samplerCreateInfo.magFilter = VK_FILTER_NEAREST;
+        samplerCreateInfo.minFilter = VK_FILTER_NEAREST;
+        samplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST;
+        samplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        samplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        samplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        samplerCreateInfo.mipLodBias = 0.0f;
+        samplerCreateInfo.maxAnisotropy = 1;
+        samplerCreateInfo.compareOp = VK_COMPARE_OP_NEVER;
+        samplerCreateInfo.minLod = 0.0f;
+        samplerCreateInfo.maxLod = 0.0f;
+        samplerCreateInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
+        samplerCreateInfo.unnormalizedCoordinates = VK_FALSE;
 
+        CALL_VK(vkCreateSampler(deviceInfo->device, &samplerCreateInfo, nullptr,
+                                &offscreenPass.sampler[i]));
         //包括image格式，采样次数和渲染前后的操作
-        VkAttachmentDescription attachmentDescription {
-            .format = swapchain->displayFormat,
-            .samples = VK_SAMPLE_COUNT_1_BIT,
-            .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR, //颜色内容在绘制前需要清空
-            .storeOp = VK_ATTACHMENT_STORE_OP_STORE,  //绘制后需要保留
-            .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE, //深度内容在绘制前清空
-            .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE, //深度内容在绘制前清空
-            .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-            //可能要修改的地方
-            .finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+        VkAttachmentDescription attachmentDescriptions {
+                .format = swapchain->displayFormat,
+                .samples = VK_SAMPLE_COUNT_1_BIT,
+                .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+                .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+                .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+                .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+                // 可能要修改的地方
+                .finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
         };
 
-        VkAttachmentReference colorReference = {0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL};
+        VkAttachmentReference colourReference = {0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL};
         //Subpass负责对attachments的读写操作
-        VkSubpassDescription subpassDescription {
-                //Todo
+        VkSubpassDescription subpassDescription = {
                 .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
-//                .pipelineBindPoint = VK_PIPELINE_BIND_POINT_BEGIN_RANGE,
                 .flags = 0,
                 .inputAttachmentCount = 0,
                 .pInputAttachments = nullptr,
                 .colorAttachmentCount = 1,
-                .pColorAttachments = &colorReference,
+                .pColorAttachments = &colourReference,
                 .pResolveAttachments = nullptr,
                 // 不使用深度模板
                 .pDepthStencilAttachment = nullptr,
@@ -125,31 +119,34 @@ void VKOffScreen::createOffscreen(VKDeviceManager *deviceInfo, VKSwapChainManage
                 .pPreserveAttachments = nullptr,
         };
         //Render pass封装了attachment description和subpass。一般render pass包含两个attachment description（延迟渲染会更多）和至少一个subpass（复杂效果会更多）。
-        VkRenderPassCreateInfo  renderPassCreateInfo {
-            .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
-            .pNext = nullptr,
-            .attachmentCount = 1,
-            .pAttachments = &attachmentDescription,
-            .subpassCount = 1,
-            .pSubpasses = &subpassDescription,
-            .dependencyCount = 0,
-            .pDependencies = nullptr,
+        VkRenderPassCreateInfo renderPassCreateInfo{
+                .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
+                .pNext = nullptr,
+                .attachmentCount = 1,
+                .pAttachments = &attachmentDescriptions,
+                .subpassCount = 1,
+                .pSubpasses = &subpassDescription,
+//          .dependencyCount = dependencies.size(),
+//          .pDependencies = dependencies.data(),
+                .dependencyCount = 0,
+                .pDependencies = nullptr,
         };
 
-        CALL_VK(vkCreateRenderPass(deviceInfo->device, &renderPassCreateInfo, nullptr, &offscreenPass.renderPass))
+        CALL_VK(vkCreateRenderPass(deviceInfo->device, &renderPassCreateInfo, nullptr,
+                                   &offscreenPass.renderPass));
 
-        VkImageView attachements[1];
-        attachements[0] = offscreenPass.color[i].view;
+        VkImageView attachments[1];
+        attachments[0] = offscreenPass.color[i].view;
         // renderpass 到framebuffer
-        VkFramebufferCreateInfo fbCreateInfo {
-            .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-            .pNext = nullptr,
-            .renderPass = offscreenPass.renderPass,
-            .layers = 1,
-            .attachmentCount = 1,
-            .pAttachments = attachements,
-            .width = static_cast<uint32_t>(offscreenPass.width),
-            .height = static_cast<uint32_t>(offscreenPass.height),
+        VkFramebufferCreateInfo fbCreateInfo{
+                .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+                .pNext = nullptr,
+                .renderPass = offscreenPass.renderPass,
+                .layers = 1,
+                .attachmentCount = 1,
+                .pAttachments = attachments,
+                .width = static_cast<uint32_t>(offscreenPass.width),
+                .height = static_cast<uint32_t>(offscreenPass.height),
         };
 
         vkCreateFramebuffer(deviceInfo->device, &fbCreateInfo, nullptr, &offscreenPass.frameBuffer[i]);

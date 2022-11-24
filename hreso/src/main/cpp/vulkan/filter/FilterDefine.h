@@ -18,7 +18,7 @@ typedef struct  FilterPipeline{
 
 typedef struct FilterContext{
     VkRenderPass renderPass;
-    VkDevice  device;
+    VkDevice device;
     VkFramebuffer framebuffer;
 } FilterContext;
 

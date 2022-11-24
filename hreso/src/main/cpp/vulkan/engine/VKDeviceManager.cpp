@@ -54,6 +54,7 @@ int VKDeviceManager::createDevice(ANativeWindow *platformWindow, VkApplicationIn
     CALL_VK(vkEnumeratePhysicalDevices(instance, &gpuCount, tmpGpus))
     physicalDevice = tmpGpus[0];
 
+    vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memoryProperties);
     // Find a GFX queue family
     //寻找队列族
     uint32_t queueFamilyCount;
@@ -98,5 +99,5 @@ int VKDeviceManager::createDevice(ANativeWindow *platformWindow, VkApplicationIn
     CALL_VK(vkCreateDevice(physicalDevice, &deviceCreateInfo, nullptr, &device))
     vkGetDeviceQueue(device, 0, 0, &queue);
 
-    return 0;
+    return VK_SUCCESS;
 }

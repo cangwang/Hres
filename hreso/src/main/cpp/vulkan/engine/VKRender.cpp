@@ -25,24 +25,22 @@ int VKRender::createRenderPass(VKDeviceManager *deviceInfo, VKSwapChainManager *
             .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
     };
 
-    VkAttachmentReference colorReference {
-        .attachment = 0,
-        .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
+    VkAttachmentReference colourReference {
+            .attachment = 0,
+            .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
     };
-
     VkSubpassDescription subpassDescription {
             .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
             .flags = 0,
             .inputAttachmentCount = 0,
             .pInputAttachments = nullptr,
             .colorAttachmentCount = 1,
-            .pColorAttachments = &colorReference,
+            .pColorAttachments = &colourReference,
             .pResolveAttachments = nullptr,
             .pDepthStencilAttachment = nullptr,
             .preserveAttachmentCount = 0,
             .pPreserveAttachments = nullptr,
     };
-
     VkRenderPassCreateInfo renderPassCreateInfo {
             .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
             .pNext = nullptr,
@@ -53,7 +51,6 @@ int VKRender::createRenderPass(VKDeviceManager *deviceInfo, VKSwapChainManager *
             .dependencyCount = 0,
             .pDependencies = nullptr,
     };
-
     CALL_VK(vkCreateRenderPass(deviceInfo->device, &renderPassCreateInfo, nullptr, &renderPass))
 
     return VK_SUCCESS;
@@ -115,7 +112,7 @@ int VKRender::createCommandPool(VKDeviceManager *deviceInfo, VKSwapChainManager 
             };
             offScreenFilter->bindFilterBuffer(buffer);
 
-            FilterFramebuffer framebuffer{
+            FilterFramebuffer framebuffer {
                     .framebuffer = vkOffScreenInfo->offscreenPass.frameBuffer[0],
                     .width = vkOffScreenInfo->offscreenPass.width,
                     .height = vkOffScreenInfo->offscreenPass.height

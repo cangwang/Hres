@@ -33,7 +33,7 @@ VkResult buildShader(const char *data, VkShaderStageFlagBits type, VkDevice vkDe
     // compile into spir-V shader
     shaderc_compiler_t compiler = shaderc_compiler_initialize();
     shaderc_compilation_result_t spvShader = shaderc_compile_into_spv(compiler, data,
-            strlen(data), getShadercShaderType(type), "shaderc_error", "main", nullptr);
+                                                                      strlen(data), getShadercShaderType(type), "shaderc_error", "main", nullptr);
     int status = shaderc_result_get_compilation_status(spvShader);
     if (status != shaderc_compilation_status_success) {
         LOGE("compilation status", "error = %d", status);

@@ -6,6 +6,7 @@
 #define HRES_LOG_H
 
 #include <android/log.h>
+#include <vulkan_wrapper/vulkan_wrapper.h>
 #include <cassert>
 
 #define DEBUG 1
