@@ -8,6 +8,7 @@ import android.util.Log
 import android.view.Window
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
+import com.cangwang.hreso.bean.EngineOptionParams
 import com.cangwang.hreso.bean.ImageOptionParams
 import com.cangwang.hreso.impl.HresListener
 import com.cangwang.hreso.util.HresJniUtil
@@ -27,7 +28,8 @@ class ImageTransformActivity: AppCompatActivity() {
         val selectPaths = intent.getSerializableExtra(PickConfig.INTENT_IMG_LIST_SELECT) as SelectModel
         val srcBitmap = BitmapFactory.decodeFile(selectPaths.path)
         btn_album_src.setImageBitmap(srcBitmap)
-        HresJniUtil.nativeCreateTransformer("image", "", null)
+        val engineOption = EngineOptionParams()
+        HresJniUtil.nativeCreateTransformer("image", engineOption.toJson(), null)
         HresJniUtil.nativeSetListener(object : HresListener {
             override fun hresTransformStart(imageOption: ImageOptionParams) {
 

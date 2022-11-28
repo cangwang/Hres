@@ -256,7 +256,7 @@ int VulkanFilter::createPipeline(VkRenderPass renderPass) {
                     .pName = "main",
             }};
     //创建图形管线
-    VkGraphicsPipelineCreateInfo pipelineCreateInfo = vks::pipelineCreateInfo(pipeline.layout_,renderPass,0);
+    VkGraphicsPipelineCreateInfo pipelineCreateInfo = vks::pipelineCreateInfo(pipeline.layout_, renderPass,0);
     //输入图元装配
     pipelineCreateInfo.pInputAssemblyState = &inputAssemblyStateCreateInfo;
     //光栅化
@@ -280,7 +280,7 @@ int VulkanFilter::createPipeline(VkRenderPass renderPass) {
     pipelineCreateInfo.pVertexInputState = &inputStateCreateInfo;
 
     CALL_VK(vkCreateGraphicsPipelines(context.device, pipeline.cache_, 1, &pipelineCreateInfo,
-                                      nullptr, &pipeline.pipeline_));
+                                      nullptr, &pipeline.pipeline_))
     //释放shader
     vkDestroyShaderModule(context.device,vertexShader, nullptr);
     vkDestroyShaderModule(context.device,fragmentShader, nullptr);

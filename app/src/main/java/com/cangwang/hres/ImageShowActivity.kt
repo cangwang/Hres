@@ -10,6 +10,7 @@ import android.view.TextureView
 import android.view.Window
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
+import com.cangwang.hreso.bean.EngineOptionParams
 import com.cangwang.hreso.bean.ImageOptionParams
 import com.cangwang.hreso.impl.HresListener
 import com.cangwang.hreso.util.HresJniUtil
@@ -33,7 +34,8 @@ class ImageShowActivity: AppCompatActivity(), TextureView.SurfaceTextureListener
 
     override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
         val s = Surface(surface)
-        HresJniUtil.nativeCreateTransformer("showImage", "", s)
+        val engineOption = EngineOptionParams()
+        HresJniUtil.nativeCreateTransformer("showImage", engineOption.toJson(), s)
         HresJniUtil.nativeUpdateViewPoint(width, height)
         HresJniUtil.nativeSetListener(object : HresListener {
             override fun hresTransformStart(imageOption: ImageOptionParams) {

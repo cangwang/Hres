@@ -35,6 +35,7 @@ class VulkanImageShowActivity: AppCompatActivity(), TextureView.SurfaceTextureLi
     override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
         val s = Surface(surface)
         val engineOption = EngineOptionParams()
+        engineOption.useVulkan = true
         HresJniUtil.nativeCreateTransformer("showImage", engineOption.toJson(), s)
         HresJniUtil.nativeUpdateViewPoint(width, height)
         HresJniUtil.nativeSetListener(object : HresListener {

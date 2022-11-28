@@ -13,7 +13,7 @@ VKRender::~VKRender() {
 }
 
 int VKRender::createRenderPass(VKDeviceManager *deviceInfo, VKSwapChainManager *swapChainInfo) {
-    //Render pass
+    // Create render pass
     VkAttachmentDescription attachmentDescriptions {
             .format = swapChainInfo->displayFormat,
             .samples = VK_SAMPLE_COUNT_1_BIT,
@@ -51,7 +51,7 @@ int VKRender::createRenderPass(VKDeviceManager *deviceInfo, VKSwapChainManager *
             .dependencyCount = 0,
             .pDependencies = nullptr,
     };
-    CALL_VK(vkCreateRenderPass(deviceInfo->device, &renderPassCreateInfo, nullptr, &renderPass))
+    CALL_VK(vkCreateRenderPass(deviceInfo->device, &renderPassCreateInfo, nullptr, &renderPass));
 
     return VK_SUCCESS;
 }

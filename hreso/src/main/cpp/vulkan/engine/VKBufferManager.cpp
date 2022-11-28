@@ -126,8 +126,9 @@ int VKBufferManager::createIndexBuffer(VKDeviceManager *deviceInfo) {
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
 
-    m_indexCount = sizeof (indices) / sizeof (indices[0]);
-    VkDeviceSize bufferSize = sizeof (indices);
+    m_indexCount = sizeof(indices) / sizeof(indices[0]);
+    VkDeviceSize bufferSize = sizeof(indices);
+
     createBuffer(deviceInfo,bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                  stagingBuffer, stagingBufferMemory);
@@ -145,8 +146,7 @@ int VKBufferManager::createIndexBuffer(VKDeviceManager *deviceInfo) {
 
     vkDestroyBuffer(deviceInfo->device, stagingBuffer, nullptr);
     vkFreeMemory(deviceInfo->device, stagingBufferMemory, nullptr);
-
-    return VK_SUCCESS;
+    return 0;
 }
 
 int VKBufferManager::createUniformBuffers(VKDeviceManager *deviceInfo) {
@@ -249,37 +249,36 @@ void VKBufferManager::createBuffer(VKDeviceManager *deviceInfo, VkDeviceSize siz
 void VKBufferManager::copyBuffer(VKDeviceManager *deviceInfo, VkBuffer srcBuffer, VkBuffer dstBuffer,
                             VkDeviceSize size) {
     //命令池结构体
-    VkCommandPoolCreateInfo cmdPoolCreatedInfo {
-        .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
-        .queueFamilyIndex = deviceInfo->queueFamilyIndex
+    VkCommandPoolCreateInfo cmdPoolCreateInfo {
+            .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+            .queueFamilyIndex = deviceInfo->queueFamilyIndex,
     };
 
     //创建命令池
     VkCommandPool cmdPool;
-    CALL_VK(vkCreateCommandPool(deviceInfo->device, &cmdPoolCreatedInfo, nullptr, &cmdPool))
+    CALL_VK(vkCreateCommandPool(deviceInfo->device, &cmdPoolCreateInfo, nullptr, &cmdPool));
 
     //命令buffer
     VkCommandBuffer cmdBuffer;
-    const VkCommandBufferAllocateInfo cmd {
+    const VkCommandBufferAllocateInfo cmd = {
             .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
             .pNext = nullptr,
             .commandPool = cmdPool,
             .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-            .commandBufferCount = 1
+            .commandBufferCount = 1,
     };
     //申请命令内存
     CALL_VK(vkAllocateCommandBuffers(deviceInfo->device, &cmd, &cmdBuffer))
 
     //开始提交命令
-    VkCommandBufferBeginInfo cmdBufferInfo {
-        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-        .pNext = nullptr,
-        .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
-        .pInheritanceInfo = nullptr
-    };
-    CALL_VK(vkBeginCommandBuffer(cmdBuffer, &cmdBufferInfo))
+    VkCommandBufferBeginInfo cmdBufferInfo = {
+            .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+            .pNext = nullptr,
+            .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
+            .pInheritanceInfo = nullptr};
+    CALL_VK(vkBeginCommandBuffer(cmdBuffer, &cmdBufferInfo));
 
     //复制buffer
     VkBufferCopy copyRegion {
@@ -292,13 +291,13 @@ void VKBufferManager::copyBuffer(VKDeviceManager *deviceInfo, VkBuffer srcBuffer
     //结束命令
     CALL_VK(vkEndCommandBuffer(cmdBuffer))
     //创建栏栅
-    VkFenceCreateInfo fenceInfo {
-      .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
-      .pNext = nullptr,
-      .flags = 0
+    VkFenceCreateInfo fenceInfo = {
+            .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = 0,
     };
     VkFence fence;
-    CALL_VK(vkCreateFence(deviceInfo->device, &fenceInfo, nullptr, &fence))
+    CALL_VK(vkCreateFence(deviceInfo->device, &fenceInfo, nullptr, &fence));
 
     //创建提交信息的结构体
     VkSubmitInfo submitInfo {

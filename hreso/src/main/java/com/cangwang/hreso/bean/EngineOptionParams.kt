@@ -6,7 +6,7 @@ import org.json.JSONObject
  * engine setting option
  */
 class EngineOptionParams {
-    var useVulkan = true
+    var useVulkan = false
     var transformType = "img" //img video
 
     fun toJson(): String {
