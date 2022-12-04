@@ -433,6 +433,8 @@ namespace vks {
         return pipelineViewportStateCreateInfo;
     }
 
+    //多重采样量 采样量决定图片显示效果 msaa
+    //https://blog.csdn.net/qq_35312463/article/details/104105734?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522166977540616782414965383%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fblog.%2522%257D&request_id=166977540616782414965383&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~blog~first_rank_ecpm_v1~rank_v31_ecpm-1-104105734-null-null.nonecase&utm_term=vulkan%E5%A1%AB%E5%9D%91%E5%AD%A6%E4%B9%A0day&spm=1018.2226.3001.4450
     inline VkPipelineMultisampleStateCreateInfo pipelineMultisampleStateCreateInfo(
             VkSampleCountFlagBits rasterizationSamples,
             VkPipelineMultisampleStateCreateFlags flags = 0) {

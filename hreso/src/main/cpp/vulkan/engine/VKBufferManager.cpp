@@ -45,6 +45,7 @@ int VKBufferManager::createVertexBuffer(VKDeviceManager *deviceInfo) {
 
     //图片的buffer
     VkBuffer stagingBuffer;
+    //stagingBuffer来划分stagingBufferMemory缓冲区用来映射、拷贝顶点数据
     VkDeviceMemory  stagingBufferMemory;
     VkDeviceSize bufferSize = sizeof(vertices);
     //VK_BUFFER_USAGE_TRANSFER_SRC_BIT 创建映射到CPU端的内存
@@ -60,7 +61,8 @@ int VKBufferManager::createVertexBuffer(VKDeviceManager *deviceInfo) {
     //创建映射到顶点数据的内存,并映射的vertexBuffer和vertexBufferMemory当中
     createBuffer(deviceInfo, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
                  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexBufferMemory);
-    //传输cpu图片buffer，顶点数据
+    //传输cpu顶点buffer，顶点数据
+    //使用命令缓冲区执行内存传输的操作命令
     copyBuffer(deviceInfo, stagingBuffer, vertexBuffer, bufferSize);
 
     vkDestroyBuffer(deviceInfo->device, stagingBuffer, nullptr);
@@ -70,27 +72,31 @@ int VKBufferManager::createVertexBuffer(VKDeviceManager *deviceInfo) {
 }
 
 int VKBufferManager::createShowVertexBuffer(VKDeviceManager *deviceInfo) {
+    //顶点数据 pos + uv
     const float vertexData[] = {
             -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
             1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
             0.0f, 1.0f, 0.0f, 0.5f, 1.0f,
     };
-
+    //顶点缓冲
     VkBufferCreateInfo bufferInfo {
             .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
             .pNext = nullptr,
             .flags = 0,
             .size = sizeof(vertexData),
+            //指定为顶点缓冲
             .usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+            //缓冲区也可以由特定的队列簇占有或者多个同时共享
             .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
             .queueFamilyIndexCount = 1,
             .pQueueFamilyIndices = &deviceInfo->queueFamilyIndex,
     };
-
+    //创建顶点缓冲区
     CALL_VK(vkCreateBuffer(deviceInfo->device, &bufferInfo, nullptr,
                            &showVertexBuffer))
-
+    //查询内存需求
     VkMemoryRequirements memReq;
+    //查询内存类型
     vkGetBufferMemoryRequirements(deviceInfo->device, showVertexBuffer, &memReq);
 
     VkMemoryAllocateInfo allocInfo{
@@ -100,6 +106,7 @@ int VKBufferManager::createShowVertexBuffer(VKDeviceManager *deviceInfo) {
             .memoryTypeIndex = 0,  // Memory type assigned in the next step
     };
     // Assign the proper memory type for that buffer
+    //memoryTypes数组是由VkMemoryType结构体组成的，它描述了堆以及每个内存类型的相关属性。属性定义了内存的特殊功能，就像内存映射功能，使我们可以从CPU向它写入数据。此属性由VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT定义，但是我们还需要使用VK_MEMORY_PROPERTY_HOST_CHOERENT_BIT属性
     mapMemoryTypeToIndex(deviceInfo,memReq.memoryTypeBits,
                          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                          VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &allocInfo.memoryTypeIndex);
@@ -107,17 +114,21 @@ int VKBufferManager::createShowVertexBuffer(VKDeviceManager *deviceInfo) {
     CALL_VK(vkAllocateMemory(deviceInfo->device, &allocInfo, nullptr, &showBufferMemory))
 
 
+    //vkMapMemory将缓冲区内存映射(mapping the buffer memory)到CPU可访问的内存中完成
+    //通过memcpy将顶点数据拷贝到映射内存中，并使用vkUnmapMemory取消映射。不幸的是，驱动程序是不会立即将数据复制到缓冲区中，比如缓存的原因。也可能尝试映射的内存对于写缓冲区操作不可见
+    //可以指定VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT解决此问题
     void* data;
     CALL_VK(vkMapMemory(deviceInfo->device, showBufferMemory, 0, allocInfo.allocationSize,
                         0, &data))
     memcpy(data, vertexData, sizeof(vertexData));
     vkUnmapMemory(deviceInfo->device, showBufferMemory);
-
+    //vkBindBufferMemory函数将内存关联到缓冲区
     CALL_VK(vkBindBufferMemory(deviceInfo->device, showVertexBuffer, showBufferMemory, 0))
 
     return VK_SUCCESS;
 }
 
+//顶点索引
 int VKBufferManager::createIndexBuffer(VKDeviceManager *deviceInfo) {
     const uint16_t indices[6] {
             0, 1, 2, 2, 3, 0
@@ -158,16 +169,16 @@ int VKBufferManager::createUniformBuffers(VKDeviceManager *deviceInfo) {
     createBuffer(deviceInfo,bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                  stagingBuffer, stagingBufferMemory);
-
+    //映射ubo数据
     void* data = nullptr;
     CALL_VK(vkMapMemory(deviceInfo->device, stagingBufferMemory, 0, bufferSize, 0, &data));
     memcpy(data, &m_ubo, bufferSize);
     vkUnmapMemory(deviceInfo->device, stagingBufferMemory);
-
+    //创建缓冲
     createBuffer(deviceInfo,bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
                  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                  uboBuffer, uboBufferMemory);
-
+    //缓冲传输数据
     copyBuffer(deviceInfo,stagingBuffer, uboBuffer, bufferSize);
 
     vkDestroyBuffer(deviceInfo->device, stagingBuffer, nullptr);

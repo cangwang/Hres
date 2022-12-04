@@ -10,6 +10,7 @@ int VulkanFilter::init(VkDevice device, VkRenderPass renderPass) {
     }
     context.device = device;
     context.renderPass = renderPass;
+    //管线需要使用描述符，需要先创建描述符
     createDescriptorLayout();
     createPipelineCache();
     createPipeline();
@@ -48,6 +49,7 @@ int VulkanFilter::buildRenderPass(VkCommandBuffer commandBuffer, VkRenderPass re
         vkCmdPushConstants(commandBuffer, pipeline.layout_, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(pushConstant.size()), pushConstant.data());
     }
     //视口
+    //Viewport用于描述framebuffer作为渲染输出结果目标区域
     VkViewport viewport = vks::viewport((float)width, (float)height, 0.0f, 1.0f);
     vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 
@@ -59,11 +61,12 @@ int VulkanFilter::buildRenderPass(VkCommandBuffer commandBuffer, VkRenderPass re
     vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.layout_, 0, 1, &pipeline.descSet_, 0 , nullptr);
 
     VkDeviceSize offset = 0;
-    // 顶点buffer绑定bindings
+    // 顶点buffer缓冲区绑定bindings
+    // vkCmdBindVertexBuffers函数用于绑定顶点缓冲区，就像之前的设置一样，除了命令缓冲区之外，前两个参数指定了我们要为其指定的顶点缓冲区的偏移量和数量。最后两个参数指定了将要绑定的顶点缓冲区的数组及开始读取数据的起始偏移量。
     vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vertexBuffer, &offset);
-
+    //绑定顶点索引
     vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT16);
-    //命令
+    //设置绘制时的顶点索引
     vkCmdDrawIndexed(commandBuffer, indexCount, 1, 0, 0, 0);
 
 //    vkCmdDraw(commandBuffer, 3, 1, 0, 0);
@@ -102,7 +105,7 @@ int VulkanFilter::updateDescriptorSet(VkSampler sampler, VkImageView imageView,
                                                             VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
                                                             0,
                                                             texDsts);
-
+    //更新描述符集
     vkUpdateDescriptorSets(context.device, 1, &writeDst, 0, nullptr);
     return VK_SUCCESS;
 }
@@ -110,7 +113,7 @@ int VulkanFilter::updateDescriptorSet(VkSampler sampler, VkImageView imageView,
 int VulkanFilter::updateDescriptorSet(std::vector <VkDescriptorBufferInfo> &bufferInfo,
                                       std::vector <VkDescriptorImageInfo> &imageInfo) {
     std::vector<VkWriteDescriptorSet> writeDst ;
-
+    //更新ubo数组
     writeDst.push_back(vks::writeDescriptorSet(pipeline.descSet_,VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,0,bufferInfo.data(),bufferInfo.size()));
 
     writeDst.push_back(vks::writeDescriptorSet(pipeline.descSet_,VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,1,imageInfo.data(),imageInfo.size()));
@@ -141,6 +144,7 @@ void VulkanFilter::setProcess(uint32_t process) {
 }
 
 int VulkanFilter::createDescriptorLayout() {
+    //采样器描述符
     VkDescriptorSetLayoutBinding binding = vks::descriptorSetLayoutBinding(
             VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0);
 
@@ -165,15 +169,17 @@ int VulkanFilter::createDescriptorLayout() {
     return VK_SUCCESS;
 }
 
+//描述符集合不能直接创建，它们必须像命令缓冲区一样，从对象池中分配使用
 int VulkanFilter::createDescriptorSet() {
+    //创建描述符池
     VkDescriptorPoolSize size = vks::descriptorPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
                                                         1);
     VkDescriptorPoolCreateInfo poolCreateInfo = vks::descriptorPoolCreateInfo(1, &size, 1);
 
     CALL_VK(vkCreateDescriptorPool(context.device,&poolCreateInfo, nullptr,&pipeline.descPool_));
-
+    //图像和采样器资源绑定到描述符集合中的具体描述符
     VkDescriptorSetAllocateInfo allocateInfo = vks::descriptorSetAllocateInfo(pipeline.descPool_,&pipeline.descLayout_,1);
-
+    //分配vulkan描述符集，不需要显式清理描述符集合，因为它们会在描述符池销毁的时候自动释放
     CALL_VK(vkAllocateDescriptorSets(context.device,&allocateInfo,&pipeline.descSet_));
     return VK_SUCCESS;
 }
@@ -192,14 +198,24 @@ int VulkanFilter::createPipelineCache() {
 
 int VulkanFilter::createPipeline(VkRenderPass renderPass) {
     //输入装配
+    //https://blog.csdn.net/qq_35312463/article/details/103955952
+    //VK_PRIMITIVE_TOPOLOGY_POINT_LIST: 顶点到点
+    //VK_PRIMITIVE_TOPOLOGY_LINE_LIST: 两点成线，顶点不共用
+    //VK_PRIMITIVE_TOPOLOGY_LINE_STRIP: 两点成线，每个线段的结束顶点作为下一个线段的开始顶点
+    //VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST: 三点成面，顶点不共用
+    //VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP: 每个但教训的第二个、第三个顶点都作为下一个三角形的前两个顶点
     VkPipelineInputAssemblyStateCreateInfo inputAssemblyStateCreateInfo = vks::pipelineInputAssemblyStateCreateInfo(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,0,VK_FALSE);
+    //纹理坐标映射
     //顶点输入绑定描述
     VkVertexInputBindingDescription inputBindingDescription = vks::vertexInputBindingDescription(0,5 *
                                                                                                    sizeof(float),VK_VERTEX_INPUT_RATE_VERTEX);
     //顶点输入属性描述
     VkVertexInputAttributeDescription inputAttributeDescription[2] = {
-            vks::vertexInputAttributeDescription(0,0,VK_FORMAT_R32G32B32_SFLOAT,0),
-            vks::vertexInputAttributeDescription(0,1,VK_FORMAT_R32G32_SFLOAT,sizeof(float) * 3)};
+        //position顶点位置
+        vks::vertexInputAttributeDescription(0,0,VK_FORMAT_R32G32B32_SFLOAT,0),
+        //uv 纹理位置
+        vks::vertexInputAttributeDescription(0,1,VK_FORMAT_R32G32_SFLOAT,sizeof(float) * 3)
+    };
     // 顶点装配状态
     VkPipelineVertexInputStateCreateInfo inputStateCreateInfo = vks::pipelineVertexInputStateCreateInfo();
     inputStateCreateInfo.vertexBindingDescriptionCount = 1;
@@ -225,6 +241,7 @@ int VulkanFilter::createPipeline(VkRenderPass renderPass) {
     //指定管线饰扣和裁剪测试状态
     VkPipelineViewportStateCreateInfo viewportStateCreateInfo = vks::pipelineViewportStateCreateInfo(1,1,0);
     //配置多重采样
+    //默认情况下，每个像素只使用一个采样点，这样就不会有重采样，在这种情况下，最终图像将保持不变
     VkPipelineMultisampleStateCreateInfo multisampleState = vks::pipelineMultisampleStateCreateInfo(VK_SAMPLE_COUNT_1_BIT, 0);
 
     std::vector<VkDynamicState> dynamicStateEnables = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};

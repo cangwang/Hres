@@ -120,9 +120,16 @@ unsigned char* LoadTextureUtil::loadImageFromOption(IOptions* option) {
     int* n = &option->srcChannel;
 
     //读取图片长宽高数据
-    unsigned char* data = stbi_load(fileName, w, h, n, 0);
+    unsigned char* data = stbi_load(fileName, w, h, n, STBI_rgb_alpha);
+//    unsigned char* data = stbi_load(fileName, w, h, n, 0);
 
-    HLOGV("loadTexture fileName = %s,width = %d,height=%d,n=%d",fileName,*w,*h,*n);
+    HLOGV("loadTexture fileName = %s,width = %d, height=%d, n=%d", fileName, *w, *h, *n);
 
     return data;
+}
+
+void LoadTextureUtil::releaseImage(unsigned char* data) {
+    if (data != nullptr) {
+        stbi_image_free(data);
+    }
 }

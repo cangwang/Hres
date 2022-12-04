@@ -75,7 +75,16 @@ VKEngineRenderer::initWindow(ANativeWindow *window, size_t width, size_t height)
 
 void VKEngineRenderer::render() {
     uint32_t nextIndex;
-    CALL_VK(vkAcquireNextImageKHR(vkDeviceInfo->device, vkSwapChainInfo->swapchain, UINT64_MAX, vkRenderInfo->semaphore, VK_NULL_HANDLE, &nextIndex))
+    //等待信号获取交换链上的图像
+    VkResult res = vkAcquireNextImageKHR(vkDeviceInfo->device, vkSwapChainInfo->swapchain, UINT64_MAX, vkRenderInfo->semaphore, VK_NULL_HANDLE, &nextIndex);
+    if (res == VK_ERROR_OUT_OF_DATE_KHR) {
+//        recreateSwapChain();
+        HLOGV("VK_ERROR_OUT_OF_DATE_KHR");
+        return;
+    } else if (res != VK_SUCCESS && res != VK_SUBOPTIMAL_KHR) {
+        throw std::runtime_error("failed to acquire swap chain image!");
+    }
+
     CALL_VK(vkResetFences(vkDeviceInfo->device, 1, &vkRenderInfo->fence))
 
     VkPipelineStageFlags waitStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
@@ -83,6 +92,7 @@ void VKEngineRenderer::render() {
         .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
         .pNext = nullptr,
         .waitSemaphoreCount = 1,
+        //设置等待信号量
         .pWaitSemaphores = &vkRenderInfo->semaphore,
         .pWaitDstStageMask = &waitStageMask,
         .commandBufferCount = 1,
@@ -96,11 +106,13 @@ void VKEngineRenderer::render() {
         return ;
     }
 
+    //使用vkQueueSubmit函数向图像队列提交命令缓冲区。当开销负载比较大的时候，处于效率考虑，函数可以持有VkSubmitInfo结构体数组。最后一个参数引用了一个可选的栅栏，当命令缓冲区执行完毕时候它会被发送信号
     CALL_VK(vkQueueSubmit(vkDeviceInfo->queue,1,&submitInfo,vkRenderInfo->fence));
     CALL_VK(vkWaitForFences(vkDeviceInfo->device,1,&vkRenderInfo->fence,VK_TRUE,100000000));
 
+    //将结果提交到交换链，使其最终显示在屏幕上。Presentation通过VkPresentInfoKHR结构体配置，具体位置在drawFrame函数最后
     VkResult result;
-    VkPresentInfoKHR presentInfo{
+    VkPresentInfoKHR presentInfo {
             .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
             .pNext = nullptr,
             .swapchainCount = 1,
@@ -110,7 +122,7 @@ void VKEngineRenderer::render() {
             .pWaitSemaphores = nullptr,
             .pResults = &result
     };
-
+    //vkQueuePresentKHR函数提交请求呈现交换链中的图像
     vkQueuePresentKHR(vkDeviceInfo->queue,&presentInfo);
 }
 
@@ -187,7 +199,7 @@ void VKEngineRenderer::draw(uint8_t *buffer, size_t length, size_t width, size_t
 
     if (vkDeviceInfo->initialized && m_params < 1){
 
-    } else if (m_params != m_filter){
+    } else if (m_params != m_filter){ //切换滤镜
         m_filter = m_params;
 
         LOGI("zhy ew filter");
@@ -287,6 +299,7 @@ void VKEngineRenderer::createFrameBuffers(VkImageView depthView) {
 
 void VKEngineRenderer::createUniformBuffers() {
     vkBufferInfo->updateUniformBuffers(m_width,m_height,m_rotation,m_backingWidth,m_backingHeight);
+    //创建ubo数据
     vkBufferInfo->createUniformBuffers(vkDeviceInfo);
     vkBufferInfo->createRGBUniformBuffer(vkDeviceInfo);
 }

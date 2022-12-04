@@ -56,11 +56,15 @@ void ImageVulkanHresTransformer::transform() {
     }
 
     if (options->srcWidth <= 0 || options->srcHeight <= 0 || options->srcChannel <= 0) {
-        HLOGE("transform, option note work, %i, %i, %i", options->srcWidth, options->srcHeight, options->srcChannel);
+        HLOGE("transform, option not work, %i, %i, %i", options->srcWidth, options->srcHeight, options->srcChannel);
         return;
     }
-    long length = options->srcWidth * options->srcHeight * options->srcChannel;
+    HLOGV("transform, width %i, height %i, channel %i", options->srcWidth, options->srcHeight, options->srcChannel);
+//    long length = options->srcWidth * options->srcHeight * options->srcChannel;
+    long length = options->srcWidth * options->srcHeight * 4;
     engine->draw(image, length, options->srcWidth, options->srcHeight, 0);
+    //释放图片内存
+    LoadTextureUtil::releaseImage(image);
 }
 
 void ImageVulkanHresTransformer::release() {

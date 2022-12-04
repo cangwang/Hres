@@ -22,6 +22,7 @@ public:
     static unsigned char* loadImageFromOption(IOptions* options);
     static GLuint loadTextureFromOption(IOptions* options);
     static void loadWidthHeightFromOption(IOptions* options);
+    static void releaseImage(unsigned char* data);
 };
 
 

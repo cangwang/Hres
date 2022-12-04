@@ -19,6 +19,7 @@
 #include <vulkan/filter/VulkanFilter.h>
 #include <vulkan/filter/EffectFilter.h>
 #include <vulkan/filter/FilterUtil.h>
+#include <util/loadtextureutil.h>
 
 
 class VKEngineRenderer : public VideoRenderer {
