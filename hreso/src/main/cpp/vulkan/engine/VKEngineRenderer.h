@@ -21,10 +21,17 @@
 #include <vulkan/filter/FilterUtil.h>
 #include <util/loadtextureutil.h>
 
+#define LOG_TAG "VKEngineRenderer"
+#define HLOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
+#define HLOGV(...) __android_log_print(ANDROID_LOG_VERBOSE, LOG_TAG, __VA_ARGS__)
 
 class VKEngineRenderer : public VideoRenderer {
 public:
     VKEngineRenderer();
+    void drawImg(string path, size_t length, size_t width, size_t height, int rotation);
+    bool createImageTextures();
+    void deleteImageTextures();
+    void createSwapChain(int width, int height);
     virtual ~VKEngineRenderer();
 
     virtual void init(ANativeWindow* window, size_t width, size_t height,AAssetManager* manager) override;
@@ -63,14 +70,17 @@ private:
 
     uint8_t *m_pBuffer;
     size_t m_length;
+    string path;
 
     VulkanFilter *vulkanFilter;
-    OffScreenFilter *offscreenFilter;
+//    OffScreenFilter *offscreenFilter;
+    VulkanFilter *offscreenFilter;
     VulkanFilter* effectFilter;
 
     size_t m_filter = 0;
     uint32_t m_CurrentProcess = 0;
     uint32_t m_LastProcess = 0;
+    bool useYUV = false;
 
     void createOffscreenReaderPassAndFramebuffer();
 };

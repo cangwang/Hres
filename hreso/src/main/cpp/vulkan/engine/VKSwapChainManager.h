@@ -16,12 +16,14 @@ public:
     ~VKSwapChainManager();
 
     int createSwapChain(VKDeviceManager* info);
+    int createSwapChain(VKDeviceManager* info, int width, int height);
     int createFrameBuffer(VKDeviceManager* deviceInfo, VkRenderPass* renderPass, VkImageView depthView = VK_NULL_HANDLE);
 
     VkSwapchainKHR swapchain;
     uint32_t swapchainLength;
 
     VkExtent2D displaySize;
+    VkExtent2D imageSize;
     VkFormat displayFormat;
 
     unique_ptr<VkFramebuffer[]> framebuffers;

@@ -19,11 +19,11 @@ void ImageVulkanHresTransformer::setWindow(ANativeWindow *window) {
 void ImageVulkanHresTransformer::updateViewPoint(int width, int height) {
     this->width = width;
     this->height = height;
-    if (engine != nullptr && this->window != nullptr) {
-        engine->initWindow(window, width, height);
-    } else {
-        HLOGE("updateViewPoint, window is null");
-    }
+//    if (engine != nullptr && this->window != nullptr) {
+//        engine->initWindow(window, width, height);
+//    } else {
+//        HLOGE("updateViewPoint, window is null");
+//    }
 }
 
 void ImageVulkanHresTransformer::transformOption(IOptions *options) {
@@ -61,14 +61,19 @@ void ImageVulkanHresTransformer::transform() {
     }
     HLOGV("transform, width %i, height %i, channel %i", options->srcWidth, options->srcHeight, options->srcChannel);
 //    long length = options->srcWidth * options->srcHeight * options->srcChannel;
+    if (engine != nullptr && this->window != nullptr) {
+        engine->initWindow(window, options->srcWidth, options->srcHeight);
+    } else {
+        HLOGE("transform, window is null");
+    }
     long length = options->srcWidth * options->srcHeight * 4;
-    engine->draw(image, length, options->srcWidth, options->srcHeight, 0);
+    engine->drawImg(options->getAddress(), length, options->srcWidth, options->srcHeight, 0);
     //释放图片内存
     LoadTextureUtil::releaseImage(image);
 }
 
 void ImageVulkanHresTransformer::release() {
-    engine->deleteTextures();
+    engine = nullptr;
     options = nullptr;
     listener = nullptr;
 }

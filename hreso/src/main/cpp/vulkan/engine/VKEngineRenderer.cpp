@@ -16,16 +16,24 @@ VKEngineRenderer::VKEngineRenderer() {
 
     m_pBuffer = nullptr;
     m_length = 0;
+    path.clear();
 
     vulkanFilter = new VulkanFilter;
-    offscreenFilter = new OffScreenFilter;
+//    offscreenFilter = new OffScreenFilter;
+    offscreenFilter = new VulkanFilter;
     effectFilter = new EffectFilter;
 }
 
 VKEngineRenderer::~VKEngineRenderer() {
     vkDeviceInfo->initialized = false;
-
+    if (useYUV) {
+        deleteTextures();
+    } else {
+        deleteImageTextures();
+    }
+    deleteUniformBuffers();
     deleteCommandPool();
+    path.clear();
 }
 
 void
@@ -70,7 +78,8 @@ VKEngineRenderer::initWindow(ANativeWindow *window, size_t width, size_t height)
             .pEngineName = "camera",
     };
     createDevice(window, &appInfo);
-    createSwapChain();
+    createSwapChain(width, height);
+//    createSwapChain();
 }
 
 void VKEngineRenderer::render() {
@@ -129,8 +138,9 @@ void VKEngineRenderer::render() {
 void VKEngineRenderer::updateFrame(const video_frame &frame) {
 
 }
-
+//YUV输入使用
 void VKEngineRenderer::draw(uint8_t *buffer, size_t length, size_t width, size_t height, int rotation) {
+    useYUV = true;
     m_pBuffer = buffer;
     m_length = length;
     m_rotation = rotation;
@@ -164,18 +174,29 @@ void VKEngineRenderer::draw(uint8_t *buffer, size_t length, size_t width, size_t
 
         LOGI("zhy vec buffer info size is %d",vecBufferInfo.size());
 
-        vector<VkDescriptorImageInfo> vecImageInfo;
-        vecImageInfo.resize(3);
-        VkDescriptorImageInfo texDsts[3];
-        memset(texDsts, 0, sizeof(texDsts));
-        for (int i = 0; i < 3; ++i) {
-            texDsts[i].sampler = vkTextureInfo->textures[i].sampler;
-            texDsts[i].imageView = vkTextureInfo->textures[i].view;
-            texDsts[i].imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-            vecImageInfo[i] = texDsts[i];
-        }
+//        vector<VkDescriptorImageInfo> vecImageInfo;
+//        vecImageInfo.resize(3);
+//        VkDescriptorImageInfo texDsts[3];
+//        memset(texDsts, 0, sizeof(texDsts));
+//        for (int i = 0; i < 3; ++i) {
+//            texDsts[i].sampler = vkTextureInfo->textures[i].sampler;
+//            texDsts[i].imageView = vkTextureInfo->textures[i].view;
+//            texDsts[i].imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+//            vecImageInfo[i] = texDsts[i];
+//        }
 
-        LOGI("zhy vec image info size is %d",vecImageInfo.size());
+        vector<VkDescriptorImageInfo> vecImageInfo;
+        vecImageInfo.resize(1);
+        VkDescriptorImageInfo texDsts[1];
+        memset(texDsts, 0, sizeof(texDsts));
+
+        texDsts[0].sampler = vkTextureInfo->testTexture[0].sampler;
+        texDsts[0].imageView = vkTextureInfo->testTexture[0].view;
+        texDsts[0].imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+        vecImageInfo[0] = texDsts[0];
+
+
+        LOGI("zhy vec image info size is %d", vecImageInfo.size());
 
         offscreenFilter->updateDescriptorSet(vecBufferInfo,vecImageInfo);
 
@@ -251,6 +272,137 @@ void VKEngineRenderer::draw(uint8_t *buffer, size_t length, size_t width, size_t
     }
 }
 
+void VKEngineRenderer::drawImg(string path, size_t length, size_t width, size_t height, int rotation) {
+    this->path = path;
+    m_length = length;
+    m_rotation = rotation;
+
+    m_width = width;
+    m_height = height;
+
+    if (!vkDeviceInfo->initialized) {
+        createRenderPass();
+        createFrameBuffers();
+
+        createVertexBuffer();
+        createIndexBuffer();
+        createUniformBuffers();
+        createImageTextures();
+
+        createOffscreenReaderPassAndFramebuffer();
+
+        offscreenFilter->init(vkDeviceInfo->device, vkOffScreenInfo->offscreenPass.renderPass);
+
+        vector<VkDescriptorBufferInfo> vecBufferInfo;
+        vecBufferInfo.resize(1);
+
+        VkDescriptorBufferInfo bufferInfo {
+                .buffer = vkBufferInfo->uboBuffer,
+                .offset = 0,
+                .range = sizeof (UniformBufferObject)
+        };
+
+        vecBufferInfo[0] = bufferInfo;
+
+        LOGI("zhy vec buffer info size is %d",vecBufferInfo.size());
+
+//        vector<VkDescriptorImageInfo> vecImageInfo;
+//        vecImageInfo.resize(3);
+//        VkDescriptorImageInfo texDsts[3];
+//        memset(texDsts, 0, sizeof(texDsts));
+//        for (int i = 0; i < 3; ++i) {
+//            texDsts[i].sampler = vkTextureInfo->textures[i].sampler;
+//            texDsts[i].imageView = vkTextureInfo->textures[i].view;
+//            texDsts[i].imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+//            vecImageInfo[i] = texDsts[i];
+//        }
+
+        vector<VkDescriptorImageInfo> vecImageInfo;
+        vecImageInfo.resize(1);
+        VkDescriptorImageInfo texDsts[1];
+        memset(texDsts, 0, sizeof(texDsts));
+
+        texDsts[0].sampler = vkTextureInfo->testTexture[0].sampler;
+        texDsts[0].imageView = vkTextureInfo->testTexture[0].view;
+        texDsts[0].imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+        vecImageInfo[0] = texDsts[0];
+
+
+        LOGI("zhy vec image info size is %d", vecImageInfo.size());
+
+        offscreenFilter->updateDescriptorSet(vecBufferInfo,vecImageInfo);
+
+        effectFilter->init(vkDeviceInfo->device,vkOffScreenInfo->offscreenPass.renderPass);
+
+        effectFilter->updateDescriptorSet(vkOffScreenInfo->offscreenPass.descriptor[0].sampler,
+                                          vkOffScreenInfo->offscreenPass.descriptor[0].imageView,
+                                          VK_IMAGE_LAYOUT_GENERAL);
+
+        vulkanFilter->init(vkDeviceInfo->device,vkRenderInfo->renderPass);
+
+        vulkanFilter->updateDescriptorSet(
+                vkOffScreenInfo->offscreenPass.descriptor[1].sampler,
+                vkOffScreenInfo->offscreenPass.descriptor[1].imageView,
+                VK_IMAGE_LAYOUT_GENERAL
+        );
+
+        createCommandPool();
+        vkDeviceInfo->initialized = true;
+    }
+
+    if (vkDeviceInfo->initialized && m_params < 1){
+
+    } else if (m_params != m_filter){ //切换滤镜
+        m_filter = m_params;
+
+        LOGI("zhy ew filter");
+        delete effectFilter;
+        effectFilter = nullptr;
+
+        effectFilter = FilterUtil::getFilterByType(m_filter);
+
+        effectFilter->init(vkDeviceInfo->device,vkOffScreenInfo->offscreenPass.renderPass);
+
+        std::vector<VkDescriptorBufferInfo> vecBufferInfo;
+        vecBufferInfo.resize(1);
+
+        VkDescriptorBufferInfo bufferInfo {
+                bufferInfo.buffer = vkBufferInfo->rgbBuffer,
+                bufferInfo.offset = 0,
+                bufferInfo.range = sizeof(RGBBufferObject),
+        };
+
+        vecBufferInfo[0] = bufferInfo;
+
+
+        std::vector<VkDescriptorImageInfo> imageInfoList;
+        VkDescriptorImageInfo imageInfo{
+                .sampler = vkOffScreenInfo->offscreenPass.descriptor[0].sampler,
+                .imageView = vkOffScreenInfo->offscreenPass.descriptor[0].imageView,
+                .imageLayout = vkOffScreenInfo->offscreenPass.descriptor[0].imageLayout
+        };
+
+        imageInfoList.push_back(imageInfo);
+
+        effectFilter->updateDescriptorSet(vecBufferInfo,imageInfoList);
+
+//        effectFilter->updateImageDescriptorSet(imageInfoList,0);
+
+        createCommandPool();
+    }
+
+    if (m_CurrentProcess != m_LastProcess) {
+        m_LastProcess = m_CurrentProcess;
+        createCommandPool();
+        LOGE("zhy m_CurrentProcess != m_LastProcess create command pool");
+    }
+
+
+    if (vkDeviceInfo->initialized) {
+        render();
+    }
+}
+
 void VKEngineRenderer::setParameters(uint32_t params) {
     m_params = params;
 }
@@ -272,6 +424,11 @@ bool VKEngineRenderer::createTextures() {
     return true;
 }
 
+bool VKEngineRenderer::createImageTextures() {
+    vkTextureInfo->createImageTexture(vkDeviceInfo, path, m_width, m_height);
+    return true;
+}
+//YUV使用
 bool VKEngineRenderer::updateTextures() {
     vkTextureInfo->updateTextures(vkDeviceInfo,m_pBuffer,m_width,m_height);
     return true;
@@ -281,12 +438,20 @@ void VKEngineRenderer::deleteTextures() {
     vkTextureInfo->deleteTextures(vkDeviceInfo);
 }
 
+void VKEngineRenderer::deleteImageTextures() {
+    vkTextureInfo->deleteImageTextures(vkDeviceInfo);
+}
+
 void VKEngineRenderer::createDevice(ANativeWindow *platformWindow, VkApplicationInfo *appInfo) {
     vkDeviceInfo->createDevice(platformWindow, appInfo);
 }
 
 void VKEngineRenderer::createSwapChain() {
     vkSwapChainInfo->createSwapChain(vkDeviceInfo);
+}
+
+void VKEngineRenderer::createSwapChain(int width, int height) {
+    vkSwapChainInfo->createSwapChain(vkDeviceInfo, width, height);
 }
 
 void VKEngineRenderer::createRenderPass() {

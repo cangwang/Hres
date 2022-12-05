@@ -60,8 +60,15 @@ public:
                                  struct texture_object* tex_obj,
                                  VkImageUsageFlags usage, VkFlags required_props);
 
+    VkResult LoadTextureFromPath(VKDeviceManager *deviceInfo, string filePath,
+                                                   VKTextureManager::texture_object *tex_obj,
+                                                   VkImageUsageFlags usage, VkFlags required_props);
+
 
     void createTexture(VKDeviceManager *deviceInfo, uint8_t *m_pBuffer, size_t m_width, size_t m_height);
+
+    void createImageTexture(VKDeviceManager *deviceInfo, string path, size_t m_width,
+                                              size_t m_height);
 
     void createImgTexture(VKDeviceManager *deviceInfo, AAssetManager* manager);
 
@@ -86,6 +93,8 @@ public:
                                               uint32_t *typeIndex);
 
     void deleteTextures(VKDeviceManager *deviceInfo);
+
+    void deleteImageTextures(VKDeviceManager *deviceInfo);
 
     void updateTextures(VKDeviceManager *deviceInfo, uint8_t *buffer, size_t width, size_t height);
 };

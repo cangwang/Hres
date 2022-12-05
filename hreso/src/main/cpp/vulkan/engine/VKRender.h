@@ -27,7 +27,7 @@ public:
     int createCommandPool(VKDeviceManager *deviceInfo, VKSwapChainManager *swapChainInfo,
                           VKBufferManager *bufferInfo,
                           VKOffScreen *vkOffScreenInfo,
-                          VulkanFilter * filter, OffScreenFilter* offScreenFilter, VulkanFilter* effectFilter);
+                          VulkanFilter * filter, VulkanFilter* offScreenFilter, VulkanFilter* effectFilter);
 
     int deleteCommandPool(VKDeviceManager *deviceInfo);
 

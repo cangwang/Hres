@@ -52,7 +52,7 @@ int VulkanFilter::buildRenderPass(VkCommandBuffer commandBuffer, VkRenderPass re
     //Viewport用于描述framebuffer作为渲染输出结果目标区域
     VkViewport viewport = vks::viewport((float)width, (float)height, 0.0f, 1.0f);
     vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-
+    //裁剪窗口大小
     VkRect2D scissor = vks::rect2D(width, height, 0, 0);
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 

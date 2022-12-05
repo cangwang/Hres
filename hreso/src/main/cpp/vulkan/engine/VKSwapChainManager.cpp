@@ -59,6 +59,57 @@ int VKSwapChainManager::createSwapChain(VKDeviceManager *info) {
     return 0;
 }
 
+int VKSwapChainManager::createSwapChain(VKDeviceManager *info, int width, int height) {
+    //查询交换链支持情况
+    VkSurfaceCapabilitiesKHR surfaceCapabilities;
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(info->physicalDevice, info->surface, &surfaceCapabilities);
+    //查询支持Surface格式
+    uint32_t formatCount = 0;
+    vkGetPhysicalDeviceSurfaceFormatsKHR(info->physicalDevice, info->surface, &formatCount, nullptr);
+
+    unique_ptr<VkSurfaceFormatKHR[]> formats = make_unique<VkSurfaceFormatKHR[]>(formatCount);
+    vkGetPhysicalDeviceSurfaceFormatsKHR(info->physicalDevice, info->surface, &formatCount, formats.get());
+
+    //RGBA格式
+    uint32_t chosenFormat;
+    for (int i = 0; i <formatCount; ++i) {
+        if (formats[i].format ==  VK_FORMAT_R8G8B8A8_UNORM) {
+            chosenFormat = i;
+            break;
+        }
+    }
+    displaySize = surfaceCapabilities.currentExtent;
+    imageSize = VkExtent2D();
+    imageSize.width = width;
+    imageSize.height = height;
+    displayFormat = formats[chosenFormat].format;
+    //创建交换链
+    VkSwapchainCreateInfoKHR swapchainCreateInfo {
+            .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
+            .pNext = nullptr,
+            .surface = info->surface,
+            .minImageCount = surfaceCapabilities.minImageCount,
+            .imageFormat = formats[chosenFormat].format,
+            .imageColorSpace = formats[chosenFormat].colorSpace,
+            .imageExtent = surfaceCapabilities.currentExtent,
+            .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+            .preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR,
+            .imageArrayLayers = 1,
+            .imageSharingMode = VK_SHARING_MODE_EXCLUSIVE,
+            .queueFamilyIndexCount = 1,
+            .pQueueFamilyIndices = &info->queueFamilyIndex,
+            .presentMode = VK_PRESENT_MODE_FIFO_KHR,
+            .oldSwapchain = VK_NULL_HANDLE,
+            .clipped = VK_TRUE
+    };
+
+    CALL_VK(vkCreateSwapchainKHR(info->device, &swapchainCreateInfo, nullptr, &swapchain))
+    CALL_VK(vkGetSwapchainImagesKHR(info->device, swapchain, &swapchainLength, nullptr))
+
+    return 0;
+}
+
+
 int VKSwapChainManager::createFrameBuffer(VKDeviceManager *deviceInfo, VkRenderPass* renderPass,
                                           VkImageView depthView) {
     //图像被交换链创建，也会在交换链销毁的同时自动清理，所以我们不需要添加任何清理代码

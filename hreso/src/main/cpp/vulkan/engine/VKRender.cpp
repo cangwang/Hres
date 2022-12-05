@@ -76,7 +76,7 @@ int VKRender::createRenderPass(VKDeviceManager *deviceInfo, VKSwapChainManager *
 
 int VKRender::createCommandPool(VKDeviceManager *deviceInfo, VKSwapChainManager *swapChainInfo,
                                 VKBufferManager *bufferInfo, VKOffScreen *vkOffScreenInfo,
-                                VulkanFilter *filter, OffScreenFilter *offScreenFilter,
+                                VulkanFilter *filter, VulkanFilter *offScreenFilter,
                                 VulkanFilter *effectFilter) {
     //创建命令池
     VkCommandPoolCreateInfo cmdPoolCreateInfo {
@@ -164,8 +164,8 @@ int VKRender::createCommandPool(VKDeviceManager *deviceInfo, VKSwapChainManager 
 
         FilterFramebuffer framebuffer{
                 .framebuffer = swapChainInfo->framebuffers[bufferIndex],
-                .width = (int)swapChainInfo->displaySize.width,
-                .height= (int)swapChainInfo->displaySize.height,
+                .width = (int)swapChainInfo->imageSize.width,
+                .height= (int)swapChainInfo->imageSize.height,
         };
         filter->bindFilterFramebuffer(framebuffer);
 
