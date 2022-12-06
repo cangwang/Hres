@@ -28,7 +28,7 @@
 class VKEngineRenderer : public VideoRenderer {
 public:
     VKEngineRenderer();
-    void drawImg(string path, size_t length, size_t width, size_t height, int rotation);
+    void drawImg(string path, size_t length, size_t width, size_t height, int rotation, string savePath);
     bool createImageTextures();
     void deleteImageTextures();
     void createSwapChain(int width, int height);

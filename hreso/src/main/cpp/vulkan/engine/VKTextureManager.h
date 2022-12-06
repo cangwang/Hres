@@ -9,6 +9,7 @@
 #include <android/asset_manager.h>
 #include <android/asset_manager_jni.h>
 #include <vulkan/engine/VKDeviceManager.h>
+#include <util/stb_image_write.h>
 
 #include <util/stb_image.h>
 
@@ -83,6 +84,10 @@ public:
                         VkPipelineStageFlags srcStages,
                         VkPipelineStageFlags destStages);
 
+    void setImageLayout(VkCommandBuffer cmdBuffer, VkImageMemoryBarrier imageMemoryBarrier,
+                                          VkPipelineStageFlags srcStages,
+                                          VkPipelineStageFlags destStages);
+
     size_t getBufferOffset(VulkanTexture *texture, TextureType type, size_t width, size_t height);
 
     void copyTextureData(VulkanTexture *texture, uint8_t *data);
@@ -97,6 +102,8 @@ public:
     void deleteImageTextures(VKDeviceManager *deviceInfo);
 
     void updateTextures(VKDeviceManager *deviceInfo, uint8_t *buffer, size_t width, size_t height);
+    //保存图片
+    void saveImage(VKDeviceManager *deviceInfo, const char* filename, VkImage* srcImage);
 };
 
 

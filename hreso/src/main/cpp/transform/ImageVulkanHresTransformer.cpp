@@ -67,7 +67,7 @@ void ImageVulkanHresTransformer::transform() {
         HLOGE("transform, window is null");
     }
     long length = options->srcWidth * options->srcHeight * 4;
-    engine->drawImg(options->getAddress(), length, options->srcWidth, options->srcHeight, 0);
+    engine->drawImg(options->getAddress(), length, options->srcWidth, options->srcHeight, 0, options->getSaveAddress());
     //释放图片内存
     LoadTextureUtil::releaseImage(image);
 }

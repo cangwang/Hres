@@ -29,6 +29,7 @@ public:
     unique_ptr<VkFramebuffer[]> framebuffers;
     unique_ptr<VkImage[]> displayImages;
     unique_ptr<VkImageView[]> displayViews;
+    VkImage* lastDisplayImage;
 };
 
 

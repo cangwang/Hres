@@ -9,7 +9,7 @@ VKSwapChainManager::VKSwapChainManager() {
 }
 
 VKSwapChainManager::~VKSwapChainManager() {
-
+    lastDisplayImage = nullptr;
 }
 
 int VKSwapChainManager::createSwapChain(VKDeviceManager *info) {
@@ -73,12 +73,15 @@ int VKSwapChainManager::createSwapChain(VKDeviceManager *info, int width, int he
     //RGBA格式
     uint32_t chosenFormat;
     for (int i = 0; i <formatCount; ++i) {
+        // RGBA格式
         if (formats[i].format ==  VK_FORMAT_R8G8B8A8_UNORM) {
             chosenFormat = i;
             break;
         }
     }
+    //屏幕大小
     displaySize = surfaceCapabilities.currentExtent;
+    //图片大小
     imageSize = VkExtent2D();
     imageSize.width = width;
     imageSize.height = height;
@@ -88,9 +91,11 @@ int VKSwapChainManager::createSwapChain(VKDeviceManager *info, int width, int he
             .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
             .pNext = nullptr,
             .surface = info->surface,
-            .minImageCount = surfaceCapabilities.minImageCount,
+            //交换链实际纹理图片数量
+            .minImageCount = 1,
             .imageFormat = formats[chosenFormat].format,
             .imageColorSpace = formats[chosenFormat].colorSpace,
+            //需要填屏幕大小，不然图片大小超出屏幕会有绘制错位问题
             .imageExtent = surfaceCapabilities.currentExtent,
             .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
             .preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR,
@@ -108,7 +113,6 @@ int VKSwapChainManager::createSwapChain(VKDeviceManager *info, int width, int he
 
     return 0;
 }
-
 
 int VKSwapChainManager::createFrameBuffer(VKDeviceManager *deviceInfo, VkRenderPass* renderPass,
                                           VkImageView depthView) {
@@ -174,5 +178,6 @@ int VKSwapChainManager::createFrameBuffer(VKDeviceManager *deviceInfo, VkRenderP
         CALL_VK(vkCreateFramebuffer(deviceInfo->device, &fbCreateInfo, nullptr, &framebuffers[i]))
     }
 
+    lastDisplayImage = &displayImages[0];
     return 0;
 }

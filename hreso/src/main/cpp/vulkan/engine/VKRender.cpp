@@ -164,6 +164,7 @@ int VKRender::createCommandPool(VKDeviceManager *deviceInfo, VKSwapChainManager 
 
         FilterFramebuffer framebuffer{
                 .framebuffer = swapChainInfo->framebuffers[bufferIndex],
+                //需要填写图片大小，不然会填充显示到整个屏幕
                 .width = (int)swapChainInfo->imageSize.width,
                 .height= (int)swapChainInfo->imageSize.height,
         };

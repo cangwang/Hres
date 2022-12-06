@@ -833,6 +833,23 @@ VkResult VKTextureManager::loadTexture(VKDeviceManager *deviceInfo, uint8_t *buf
 }
 
 //通常主流的做法用于处理图像变换是使用 image memory barrier
+void VKTextureManager::setImageLayout(VkCommandBuffer cmdBuffer, VkImageMemoryBarrier imageMemoryBarrier,
+                                      VkPipelineStageFlags srcStages,
+                                      VkPipelineStageFlags destStages) {
+
+    //所有类型的管线屏障都使用同样的函数提交。命令缓冲区参数后的第一个参数指定管线的哪个阶段，应用屏障同步之前要执行的前置操作。第二个参数指定操作将在屏障上等待的管线阶段。在屏障之前和之后允许指定管线阶段取决于在屏障之前和之后如何使用资源。允许的值列在规范的 table 表格中。比如，要在屏障之后从 uniform 中读取，您将指定使用VK_ACCESS_UNIFORM_READ_BIT以及初始着色器从 uniform 中读取作为管线阶段，例如 VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT。为这种类型的指定非着色器管线阶段是没有意义的，并且当指定和使用类型不匹配的管线阶段时候，validation layer 将会提示警告信息。
+    //
+    //第三个参数可以设置为0或者VK_DEPENDENCY_BY_REGION_BIT。后者将屏障变换为每个区域的状态。这意味着，例如，允许已经写完资源的区域开始读的操作，更加细的粒度。
+    //
+    //最后三个参数引用管线屏障的数组，有三种类型，第一种 memory barriers，第二种, buffer memory barriers, 和 image memory barriers。第一种就是我们使用的。需要注意的是我们没有使用VkFormat参数，但是我们会在深度缓冲区章节中使用它做一些特殊的变换。
+    //————————————————
+    //版权声明：本文为CSDN博主「沉默的舞台剧」的原创文章，遵循CC 4.0 BY-SA版权协议，转载请附上原文出处链接及本声明。
+    //原文链接：https://blog.csdn.net/qq_35312463/article/details/104063865
+    //向命令管道栅栏，让命令按输入顺序执行
+    vkCmdPipelineBarrier(cmdBuffer, srcStages, destStages, 0, 0, NULL, 0, NULL, 1, &imageMemoryBarrier);
+}
+
+//通常主流的做法用于处理图像变换是使用 image memory barrier
 void VKTextureManager::setImageLayout(VkCommandBuffer cmdBuffer, VkImage image,
                                       VkImageLayout oldImageLayout, VkImageLayout newImageLayout,
                                       VkPipelineStageFlags srcStages,
@@ -910,6 +927,7 @@ void VKTextureManager::setImageLayout(VkCommandBuffer cmdBuffer, VkImage image,
     vkCmdPipelineBarrier(cmdBuffer, srcStages, destStages, 0, 0, NULL, 0, NULL, 1, &imageMemoryBarrier);
 }
 
+
 size_t VKTextureManager::getBufferOffset(VKTextureManager::VulkanTexture *texture,
                                          VKTextureManager::TextureType type, size_t width,
                                          size_t height) {
@@ -982,4 +1000,252 @@ void VKTextureManager::updateTextures(VKDeviceManager *deviceInfo, uint8_t *buff
         size_t offset = getBufferOffset(&textures[i], texType[i], width, height);
         copyTextureData(&textures[i], buffer + offset);
     }
+}
+
+//https://zhuanlan.zhihu.com/p/508507043
+//https://github.com/SaschaWillems/Vulkan/blob/master/examples/screenshot/screenshot.cpp
+void VKTextureManager::saveImage(VKDeviceManager *deviceInfo, const char* filename, VkImage* srcImage) {
+    bool supportsBlit = true;
+    VkFormatProperties formatProperties;
+    vkGetPhysicalDeviceFormatProperties(deviceInfo->physicalDevice, kTexFmt, &formatProperties);
+    //swap chain image通常存储为optimal tiling format, optimal tiling 的图像内存不能为 host 可见
+    if (!(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_BLIT_SRC_BIT)) {
+        HLOGV("Device does not support blitting from optimal tiled images, using copy instead of blit!");
+        supportsBlit = false;
+    }
+    //创建的dstImage为linear tiling，可以host可见，之后用来映射到内存
+    vkGetPhysicalDeviceFormatProperties(deviceInfo->physicalDevice, VK_FORMAT_R8G8B8A8_UNORM, &formatProperties);
+    if (!(formatProperties.linearTilingFeatures & VK_FORMAT_FEATURE_BLIT_DST_BIT)) {
+        HLOGV("Device does not support blitting to linear tiled images, using copy instead of blit!");
+        supportsBlit = false;
+    }
+
+    //纹理宽高
+    size_t imgWidth = testTexture[0].tex_width;
+    size_t imgHeight = testTexture[0].tex_height;
+
+    VkImageCreateInfo image_create_info {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = 0,
+            .imageType = VK_IMAGE_TYPE_2D, //2D图片
+            .format = kTexFmt,
+            .extent = {static_cast<uint32_t>(imgWidth), static_cast<uint32_t>(imgHeight), 1},
+            .mipLevels = 1,
+            .arrayLayers = 1,
+            .samples = VK_SAMPLE_COUNT_1_BIT,
+            .tiling = VK_IMAGE_TILING_LINEAR,
+            //CPU可见，
+            .usage = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+            .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+            .queueFamilyIndexCount = 1,
+            .pQueueFamilyIndices = &deviceInfo->queueFamilyIndex,
+            .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+    };
+    VkImage dstImage;
+    VkMemoryRequirements mem_reqs;
+    VkDeviceMemory mem;
+    //创建图像
+    CALL_VK(vkCreateImage(deviceInfo->device, &image_create_info, nullptr, &dstImage))
+    vkGetImageMemoryRequirements(deviceInfo->device, dstImage, &mem_reqs);
+    HLOGV("dst memory width %d, height %d, size %ld", imgWidth, imgHeight, (long)mem_reqs.size);
+    VkMemoryAllocateInfo mem_alloc {
+            .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+            .pNext = nullptr,
+            .allocationSize = mem_reqs.size,
+            .memoryTypeIndex = 0
+    };
+
+    CALL_VK(allocateMemoryTypeFromProperties(deviceInfo, mem_reqs.memoryTypeBits,
+                                     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, &mem_alloc.memoryTypeIndex))
+    CALL_VK(vkAllocateMemory(deviceInfo->device, &mem_alloc, nullptr, &mem))
+    CALL_VK(vkBindImageMemory(deviceInfo->device, dstImage, mem, 0))
+
+    VkCommandPoolCreateInfo cmdPoolCreateInfo {
+            .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+            .queueFamilyIndex = deviceInfo->queueFamilyIndex,
+    };
+
+    VkCommandPool cmdPool;
+    CALL_VK(vkCreateCommandPool(deviceInfo->device, &cmdPoolCreateInfo, nullptr, &cmdPool));
+
+    VkCommandBuffer gfxCmd;
+    const VkCommandBufferAllocateInfo cmd = {
+            .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+            .pNext = nullptr,
+            .commandPool = cmdPool,
+            .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+            .commandBufferCount = 1,
+    };
+
+    CALL_VK(vkAllocateCommandBuffers(deviceInfo->device, &cmd, &gfxCmd));
+    VkCommandBufferBeginInfo cmdBufferInfo = {
+            .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+            .pNext = nullptr,
+            .flags = 0,
+            .pInheritanceInfo = nullptr};
+    CALL_VK(vkBeginCommandBuffer(gfxCmd, &cmdBufferInfo));
+
+//    //设置原图像能够读取
+//    setImageLayout(gfxCmd, *srcImage, VK_IMAGE_LAYOUT_PREINITIALIZED,
+//                   VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+//                   VK_PIPELINE_STAGE_HOST_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
+//
+//    //设置目标图像能够写入
+//    setImageLayout(gfxCmd, dstImage, VK_IMAGE_LAYOUT_UNDEFINED,
+//                   VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+//                   VK_PIPELINE_STAGE_HOST_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
+
+    VkImageMemoryBarrier srcBarrier {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+            .pNext = nullptr,
+            .oldLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+            .newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+            .srcAccessMask = VK_ACCESS_MEMORY_READ_BIT,
+            .dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
+            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .image = *srcImage,
+    };
+    setImageLayout(gfxCmd, srcBarrier, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
+
+    VkImageMemoryBarrier dstBarrier {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+            .pNext = nullptr,
+            .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+            .newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+            .srcAccessMask = VK_IMAGE_LAYOUT_UNDEFINED,
+            .dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
+            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .image = dstImage,
+    };
+    setImageLayout(gfxCmd, dstBarrier, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
+
+
+    //vkCmdBlitImage能够伴随格式转换， vkCmdCopyImage不能
+    if (supportsBlit) {
+        VkOffset3D blitSize;
+        blitSize.x = imgWidth;
+        blitSize.y = imgHeight;
+        blitSize.z = 1;
+        VkImageBlit imageBlitRegion {
+            .srcSubresource {
+                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .layerCount = 1
+            },
+            .srcOffsets = blitSize,
+            .dstSubresource {
+                    .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                    .layerCount = 1
+            },
+            .dstOffsets = blitSize
+        };
+        HLOGV("blit dstImage");
+        vkCmdBlitImage(gfxCmd, *srcImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                       dstImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                       1, &imageBlitRegion, VK_FILTER_NEAREST);
+    } else {
+        //复制指定区域
+        VkImageCopy bltInfo{
+                .srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .srcSubresource.mipLevel = 0,
+                .srcSubresource.baseArrayLayer = 0,
+                .srcSubresource.layerCount = 1,
+                .srcOffset.x = 0,
+                .srcOffset.y = 0,
+                .srcOffset.z = 0,
+                .dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .dstSubresource.mipLevel = 0,
+                .dstSubresource.baseArrayLayer = 0,
+                .dstSubresource.layerCount = 1,
+                .dstOffset.x = 0,
+                .dstOffset.y = 0,
+                .dstOffset.z = 0,
+                .extent.width = static_cast<uint32_t>(imgWidth),
+                .extent.height = static_cast<uint32_t>(imgHeight),
+                .extent.depth = 1
+        };
+        HLOGV("copy to dstImage");
+        //在image之间进行复制操作
+        vkCmdCopyImage(gfxCmd, *srcImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                       dstImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1,
+                       &bltInfo);
+    }
+
+    CALL_VK(vkEndCommandBuffer(gfxCmd));
+    VkFenceCreateInfo fenceInfo = {
+            .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = 0,
+    };
+    VkFence fence;
+    CALL_VK(vkCreateFence(deviceInfo->device, &fenceInfo, nullptr, &fence));
+
+    VkSubmitInfo submitInfo = {
+            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+            .pNext = nullptr,
+            .waitSemaphoreCount = 0,
+            .pWaitSemaphores = nullptr,
+            .pWaitDstStageMask = nullptr,
+            .commandBufferCount = 1,
+            .pCommandBuffers = &gfxCmd,
+            .signalSemaphoreCount = 0,
+            .pSignalSemaphores = nullptr,
+    };
+    CALL_VK(vkQueueSubmit(deviceInfo->queue, 1, &submitInfo, fence) != VK_SUCCESS)
+    CALL_VK(vkWaitForFences(deviceInfo->device, 1, &fence, VK_TRUE, 100000000) != VK_SUCCESS)
+
+//    //设置原图像回原状态
+//    setImageLayout(gfxCmd, *srcImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+//                   VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+//                   VK_PIPELINE_STAGE_HOST_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
+//    //设置保存图像回一般状态
+//    setImageLayout(gfxCmd, dstImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+//                   VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+//                   VK_PIPELINE_STAGE_TRANSFER_BIT,
+//                   VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+
+    srcBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+    srcBarrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+    //设置原图像回原状态
+    setImageLayout(gfxCmd, srcBarrier,
+                   VK_PIPELINE_STAGE_HOST_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
+
+    dstBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+    dstBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+    //设置原图像回原状态
+    setImageLayout(gfxCmd, dstBarrier,
+                   VK_PIPELINE_STAGE_HOST_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
+
+
+    VkImageSubresource subresource {
+            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+            .mipLevel = 0,
+            .arrayLayer = 0,
+    };
+    //获取到布局的offset
+    VkSubresourceLayout subresourceLayout;
+    vkGetImageSubresourceLayout(deviceInfo->device, dstImage, &subresource, &subresourceLayout);
+    char* data;
+    vkMapMemory(deviceInfo->device, mem, 0, VK_WHOLE_SIZE, 0, (void**)&data);
+    data += subresourceLayout.offset;
+    HLOGV("start save address");
+    if (stbi_write_png(filename, imgWidth, imgHeight, 4, data, static_cast<int>(subresourceLayout.rowPitch))) {
+        HLOGV("save address = %s success", filename);
+        memset(data, 0, mem_reqs.size);
+    } else {
+        HLOGE("save address = %s fail", filename);
+    }
+    vkUnmapMemory(deviceInfo->device, mem);
+    vkFreeMemory(deviceInfo->device, mem, nullptr);
+    vkDestroyImage(deviceInfo->device, dstImage, nullptr);
+
+    vkDestroyFence(deviceInfo->device, fence, nullptr);
+    vkFreeCommandBuffers(deviceInfo->device, cmdPool, 1, &gfxCmd);
+    vkDestroyCommandPool(deviceInfo->device, cmdPool, nullptr);
 }

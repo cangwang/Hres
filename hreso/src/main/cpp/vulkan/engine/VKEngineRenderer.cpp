@@ -220,7 +220,7 @@ void VKEngineRenderer::draw(uint8_t *buffer, size_t length, size_t width, size_t
 
     if (vkDeviceInfo->initialized && m_params < 1){
 
-    } else if (m_params != m_filter){ //切换滤镜
+    } else if (m_params != m_filter) { //切换滤镜
         m_filter = m_params;
 
         LOGI("zhy ew filter");
@@ -272,7 +272,7 @@ void VKEngineRenderer::draw(uint8_t *buffer, size_t length, size_t width, size_t
     }
 }
 
-void VKEngineRenderer::drawImg(string path, size_t length, size_t width, size_t height, int rotation) {
+void VKEngineRenderer::drawImg(string path, size_t length, size_t width, size_t height, int rotation, string savePath) {
     this->path = path;
     m_length = length;
     m_rotation = rotation;
@@ -401,6 +401,7 @@ void VKEngineRenderer::drawImg(string path, size_t length, size_t width, size_t 
     if (vkDeviceInfo->initialized) {
         render();
     }
+    vkTextureInfo->saveImage(vkDeviceInfo, savePath.c_str(), vkSwapChainInfo->lastDisplayImage);
 }
 
 void VKEngineRenderer::setParameters(uint32_t params) {
