@@ -4,6 +4,7 @@
 #include "FilterUtil.h"
 
 #include <vulkan/filter/VulkanFilter.h>
+#include <vulkan/filter/FsrVulkanFilter.h>
 
 VulkanFilter* FilterUtil::getFilterByType(int type) {
 //    switch (type){
@@ -27,6 +28,14 @@ VulkanFilter* FilterUtil::getFilterByType(int type) {
 //            break;
 //    }
     return new VulkanFilter;
+}
+
+VulkanFilter *FilterUtil::getFilterByType(string type) {
+    if (type == "fsr") {
+        return new FsrVulkanFilter;
+    } else {
+        return new VulkanFilter;
+    }
 }
 
 float FilterUtil::getProcess(int progress, float start, float end) {

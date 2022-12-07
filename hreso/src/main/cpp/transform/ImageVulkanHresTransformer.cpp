@@ -62,12 +62,12 @@ void ImageVulkanHresTransformer::transform() {
     HLOGV("transform, width %i, height %i, channel %i", options->srcWidth, options->srcHeight, options->srcChannel);
 //    long length = options->srcWidth * options->srcHeight * options->srcChannel;
     if (engine != nullptr && this->window != nullptr) {
-        engine->initWindow(window, options->srcWidth, options->srcHeight);
+        engine->initWindow(window, options);
     } else {
         HLOGE("transform, window is null");
     }
-    long length = options->srcWidth * options->srcHeight * 4;
-    engine->drawImg(options->getAddress(), length, options->srcWidth, options->srcHeight, 0, options->getSaveAddress());
+    engine->setOption(options);
+    engine->drawImg();
     //释放图片内存
     LoadTextureUtil::releaseImage(image);
 }

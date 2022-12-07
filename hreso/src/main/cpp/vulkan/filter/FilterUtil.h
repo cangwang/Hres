@@ -6,12 +6,16 @@
 #define VULKANCAMERA_FILTERUTIL_H
 
 //#include <vulkan/filter/VulkanFilter.h>
+#include <string>
 
 class VulkanFilter;
 
+using namespace std;
 class FilterUtil {
 public:
     static VulkanFilter* getFilterByType(int type);
+
+    static VulkanFilter* getFilterByType(string type);
 
     static float getProcess(int progress, float start, float end);
 };

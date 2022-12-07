@@ -91,7 +91,7 @@ int VKSwapChainManager::createSwapChain(VKDeviceManager *info, int width, int he
             .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
             .pNext = nullptr,
             .surface = info->surface,
-            //交换链实际纹理图片数量
+            //交换链实际纹理图片数量，实际缓存解析的纹理图片数量
             .minImageCount = 1,
             .imageFormat = formats[chosenFormat].format,
             .imageColorSpace = formats[chosenFormat].colorSpace,

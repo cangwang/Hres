@@ -19,10 +19,6 @@ void VideoRenderContext::init(ANativeWindow *window, size_t width, size_t height
     m_pVideoRenderer->init(window, width, height, manager);
 }
 
-void VideoRenderContext::initWindow(ANativeWindow *window, size_t width, size_t height) {
-    m_pVideoRenderer->initWindow(window, width, height);
-}
-
 void VideoRenderContext::render() {
     m_pVideoRenderer->render();
 }

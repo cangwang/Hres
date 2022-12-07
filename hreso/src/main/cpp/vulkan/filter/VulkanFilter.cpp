@@ -143,6 +143,10 @@ void VulkanFilter::setProcess(uint32_t process) {
     mProcess = process;
 }
 
+void VulkanFilter::setOption(IOptions *option) {
+    this->options = option;
+}
+
 int VulkanFilter::createDescriptorLayout() {
     //采样器描述符
     VkDescriptorSetLayoutBinding binding = vks::descriptorSetLayoutBinding(

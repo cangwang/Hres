@@ -28,14 +28,15 @@
 class VKEngineRenderer : public VideoRenderer {
 public:
     VKEngineRenderer();
-    void drawImg(string path, size_t length, size_t width, size_t height, int rotation, string savePath);
+    void setOption(IOptions* option);
+    void initWindow(ANativeWindow* window, IOptions* options);
+    void drawImg();
     bool createImageTextures();
     void deleteImageTextures();
     void createSwapChain(int width, int height);
     virtual ~VKEngineRenderer();
 
     virtual void init(ANativeWindow* window, size_t width, size_t height,AAssetManager* manager) override;
-    virtual void initWindow(ANativeWindow* window, size_t width, size_t height) override;
     virtual void render() override;
     virtual void updateFrame(const video_frame& frame) override;
     virtual void draw(uint8_t *buffer, size_t length, size_t width, size_t height, int rotation) override;
@@ -57,6 +58,7 @@ private:
     void createIndexBuffer();
 
     void createCommandPool();
+    void createImageCommandPool();
 
     void deleteUniformBuffers();
     void deleteCommandPool();
@@ -78,9 +80,11 @@ private:
     VulkanFilter* effectFilter;
 
     size_t m_filter = 0;
+    string filterType;
     uint32_t m_CurrentProcess = 0;
     uint32_t m_LastProcess = 0;
     bool useYUV = false;
+    IOptions* options;
 
     void createOffscreenReaderPassAndFramebuffer();
 };

@@ -51,7 +51,7 @@ public:
                                               VkFlags requirements_mask,
                                               uint32_t *typeIndex);
 
-    int num = 2;
+    int num = 1;
 };
 
 

@@ -13,12 +13,18 @@
 #include <vulkan/filter/FilterUtil.h>
 #include <vulkan/Log.h>
 #include <array>
+#include <bean/ioptions.h>
 
 using namespace std;
 class VulkanFilter {
 public:
     VulkanFilter() : pVertexShader(showVertexShader), pFragShader(showFragShader) {
         pushConstant.resize(0);
+    }
+    ~VulkanFilter() {
+        options = nullptr;
+        pVertexShader = nullptr;
+        pFragShader = nullptr;
     }
     virtual int init(VkDevice device,VkRenderPass renderPass);
 
@@ -38,10 +44,11 @@ public:
     virtual int updateImageDescriptorSet(std::vector<VkDescriptorImageInfo>& imageInfo,int binding = 0 );
 
     virtual void setProcess(uint32_t process);
+
+    virtual void setOption(IOptions * option);
 protected:
     const char* pVertexShader = showVertexShader;
     const char* pFragShader = showFragShader;
-
 
     virtual int createDescriptorLayout();
     virtual int createDescriptorSet();
@@ -65,6 +72,8 @@ protected:
     bool isInit = false;
 
     uint32_t mProcess ;
+
+    IOptions* options;
 };
 
 

@@ -33,7 +33,6 @@ public:
     static unique_ptr<VideoRenderer> create(int type);
 
     virtual void init(ANativeWindow* window, size_t width, size_t height, AAssetManager* manager) = 0;
-    virtual void initWindow(ANativeWindow* window, size_t width, size_t height) = 0;
     virtual void render() = 0;
     virtual void updateFrame(const video_frame& frame) = 0;
     virtual void draw(uint8_t *buffer, size_t length, size_t width, size_t height, int rotation) = 0;

@@ -17,11 +17,6 @@ VKEngineRenderer::VKEngineRenderer() {
     m_pBuffer = nullptr;
     m_length = 0;
     path.clear();
-
-    vulkanFilter = new VulkanFilter;
-//    offscreenFilter = new OffScreenFilter;
-    offscreenFilter = new VulkanFilter;
-    effectFilter = new EffectFilter;
 }
 
 VKEngineRenderer::~VKEngineRenderer() {
@@ -34,6 +29,7 @@ VKEngineRenderer::~VKEngineRenderer() {
     deleteUniformBuffers();
     deleteCommandPool();
     path.clear();
+    options = nullptr;
 }
 
 void
@@ -61,9 +57,21 @@ VKEngineRenderer::init(ANativeWindow *window, size_t width, size_t height, AAsse
 }
 
 void
-VKEngineRenderer::initWindow(ANativeWindow *window, size_t width, size_t height) {
-    m_backingWidth = width;
-    m_backingHeight = height;
+VKEngineRenderer::initWindow(ANativeWindow *window, IOptions* options) {
+    if (options == nullptr) {
+        HLOGE("initWindow options is null");
+        return;
+    }
+
+    vulkanFilter = new VulkanFilter;
+//    offscreenFilter = new OffScreenFilter;
+    offscreenFilter = new VulkanFilter;
+    this->filterType = options->getFilterType();
+    effectFilter = FilterUtil::getFilterByType(options->getFilterType());
+
+    this->options = options;
+    m_backingWidth = options->srcWidth;
+    m_backingHeight = options->srcHeight;
     if (!InitVulkan()) {
         LOGE("Vulkan is unavailable, install vulkan and re-start");
         return;
@@ -78,7 +86,7 @@ VKEngineRenderer::initWindow(ANativeWindow *window, size_t width, size_t height)
             .pEngineName = "camera",
     };
     createDevice(window, &appInfo);
-    createSwapChain(width, height);
+    createSwapChain(options->srcWidth, options->srcHeight);
 //    createSwapChain();
 }
 
@@ -174,27 +182,16 @@ void VKEngineRenderer::draw(uint8_t *buffer, size_t length, size_t width, size_t
 
         LOGI("zhy vec buffer info size is %d",vecBufferInfo.size());
 
-//        vector<VkDescriptorImageInfo> vecImageInfo;
-//        vecImageInfo.resize(3);
-//        VkDescriptorImageInfo texDsts[3];
-//        memset(texDsts, 0, sizeof(texDsts));
-//        for (int i = 0; i < 3; ++i) {
-//            texDsts[i].sampler = vkTextureInfo->textures[i].sampler;
-//            texDsts[i].imageView = vkTextureInfo->textures[i].view;
-//            texDsts[i].imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-//            vecImageInfo[i] = texDsts[i];
-//        }
-
         vector<VkDescriptorImageInfo> vecImageInfo;
-        vecImageInfo.resize(1);
-        VkDescriptorImageInfo texDsts[1];
+        vecImageInfo.resize(3);
+        VkDescriptorImageInfo texDsts[3];
         memset(texDsts, 0, sizeof(texDsts));
-
-        texDsts[0].sampler = vkTextureInfo->testTexture[0].sampler;
-        texDsts[0].imageView = vkTextureInfo->testTexture[0].view;
-        texDsts[0].imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-        vecImageInfo[0] = texDsts[0];
-
+        for (int i = 0; i < 3; ++i) {
+            texDsts[i].sampler = vkTextureInfo->textures[i].sampler;
+            texDsts[i].imageView = vkTextureInfo->textures[i].view;
+            texDsts[i].imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+            vecImageInfo[i] = texDsts[i];
+        }
 
         LOGI("zhy vec image info size is %d", vecImageInfo.size());
 
@@ -272,13 +269,17 @@ void VKEngineRenderer::draw(uint8_t *buffer, size_t length, size_t width, size_t
     }
 }
 
-void VKEngineRenderer::drawImg(string path, size_t length, size_t width, size_t height, int rotation, string savePath) {
-    this->path = path;
-    m_length = length;
-    m_rotation = rotation;
+void VKEngineRenderer::drawImg() {
+    if (options == nullptr) {
+        HLOGE("drawImg options is null");
+        return;
+    }
+    this->path = options->getAddress();
+    m_length = options->srcWidth * options->srcHeight * 4;
+    m_rotation = options->getRotation();
 
-    m_width = width;
-    m_height = height;
+    m_width = options->srcWidth;
+    m_height = options->srcHeight;
 
     if (!vkDeviceInfo->initialized) {
         createRenderPass();
@@ -306,17 +307,6 @@ void VKEngineRenderer::drawImg(string path, size_t length, size_t width, size_t 
 
         LOGI("zhy vec buffer info size is %d",vecBufferInfo.size());
 
-//        vector<VkDescriptorImageInfo> vecImageInfo;
-//        vecImageInfo.resize(3);
-//        VkDescriptorImageInfo texDsts[3];
-//        memset(texDsts, 0, sizeof(texDsts));
-//        for (int i = 0; i < 3; ++i) {
-//            texDsts[i].sampler = vkTextureInfo->textures[i].sampler;
-//            texDsts[i].imageView = vkTextureInfo->textures[i].view;
-//            texDsts[i].imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-//            vecImageInfo[i] = texDsts[i];
-//        }
-
         vector<VkDescriptorImageInfo> vecImageInfo;
         vecImageInfo.resize(1);
         VkDescriptorImageInfo texDsts[1];
@@ -338,29 +328,20 @@ void VKEngineRenderer::drawImg(string path, size_t length, size_t width, size_t 
                                           vkOffScreenInfo->offscreenPass.descriptor[0].imageView,
                                           VK_IMAGE_LAYOUT_GENERAL);
 
-        vulkanFilter->init(vkDeviceInfo->device,vkRenderInfo->renderPass);
-
-        vulkanFilter->updateDescriptorSet(
-                vkOffScreenInfo->offscreenPass.descriptor[1].sampler,
-                vkOffScreenInfo->offscreenPass.descriptor[1].imageView,
-                VK_IMAGE_LAYOUT_GENERAL
-        );
-
-        createCommandPool();
+        createImageCommandPool();
         vkDeviceInfo->initialized = true;
     }
 
     if (vkDeviceInfo->initialized && m_params < 1){
 
-    } else if (m_params != m_filter){ //切换滤镜
-        m_filter = m_params;
-
+    } else if (this->filterType != filterType){ //切换滤镜
         LOGI("zhy ew filter");
         delete effectFilter;
         effectFilter = nullptr;
 
-        effectFilter = FilterUtil::getFilterByType(m_filter);
-
+        this->filterType = filterType;
+        effectFilter = FilterUtil::getFilterByType(filterType);
+        effectFilter->setOption(options);
         effectFilter->init(vkDeviceInfo->device,vkOffScreenInfo->offscreenPass.renderPass);
 
         std::vector<VkDescriptorBufferInfo> vecBufferInfo;
@@ -373,7 +354,6 @@ void VKEngineRenderer::drawImg(string path, size_t length, size_t width, size_t 
         };
 
         vecBufferInfo[0] = bufferInfo;
-
 
         std::vector<VkDescriptorImageInfo> imageInfoList;
         VkDescriptorImageInfo imageInfo{
@@ -388,12 +368,12 @@ void VKEngineRenderer::drawImg(string path, size_t length, size_t width, size_t 
 
 //        effectFilter->updateImageDescriptorSet(imageInfoList,0);
 
-        createCommandPool();
+        createImageCommandPool();
     }
 
     if (m_CurrentProcess != m_LastProcess) {
         m_LastProcess = m_CurrentProcess;
-        createCommandPool();
+        createImageCommandPool();
         LOGE("zhy m_CurrentProcess != m_LastProcess create command pool");
     }
 
@@ -401,7 +381,7 @@ void VKEngineRenderer::drawImg(string path, size_t length, size_t width, size_t 
     if (vkDeviceInfo->initialized) {
         render();
     }
-    vkTextureInfo->saveImage(vkDeviceInfo, savePath.c_str(), vkSwapChainInfo->lastDisplayImage);
+    vkTextureInfo->saveImage(vkDeviceInfo, options->getSaveAddress().c_str(), vkSwapChainInfo->lastDisplayImage);
 }
 
 void VKEngineRenderer::setParameters(uint32_t params) {
@@ -413,6 +393,13 @@ void VKEngineRenderer::setProcess(uint32_t process) {
 
     if (effectFilter != nullptr){
         effectFilter->setProcess(m_CurrentProcess);
+    }
+}
+
+void VKEngineRenderer::setOption(IOptions *option) {
+    this->options = option;
+    if (effectFilter != nullptr){
+        effectFilter->setOption(option);
     }
 }
 
@@ -481,6 +468,11 @@ void VKEngineRenderer::createIndexBuffer() {
 
 void VKEngineRenderer::createCommandPool() {
     vkRenderInfo->createCommandPool(vkDeviceInfo, vkSwapChainInfo, vkBufferInfo, vkOffScreenInfo, vulkanFilter, offscreenFilter,
+                                    effectFilter);
+}
+
+void VKEngineRenderer::createImageCommandPool() {
+    vkRenderInfo->createCommandPool(vkDeviceInfo, vkSwapChainInfo, vkBufferInfo, vkOffScreenInfo, offscreenFilter,
                                     effectFilter);
 }
 

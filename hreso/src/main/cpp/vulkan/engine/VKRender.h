@@ -29,6 +29,11 @@ public:
                           VKOffScreen *vkOffScreenInfo,
                           VulkanFilter * filter, VulkanFilter* offScreenFilter, VulkanFilter* effectFilter);
 
+    int createCommandPool(VKDeviceManager *deviceInfo, VKSwapChainManager *swapChainInfo,
+                          VKBufferManager *bufferInfo,
+                          VKOffScreen *vkOffScreenInfo,
+                          VulkanFilter* offScreenFilter, VulkanFilter* effectFilter);
+
     int deleteCommandPool(VKDeviceManager *deviceInfo);
 
     void setImageLayout(VkCommandBuffer cmdBuffer,
