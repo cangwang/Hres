@@ -95,10 +95,12 @@ int VKSwapChainManager::createSwapChain(VKDeviceManager *info, int width, int he
             .minImageCount = 1,
             .imageFormat = formats[chosenFormat].format,
             .imageColorSpace = formats[chosenFormat].colorSpace,
-            //需要填屏幕大小，不然图片大小超出屏幕会有绘制错位问题
-            .imageExtent = surfaceCapabilities.currentExtent,
+            // 不能填屏幕大小，不然图片大小超出屏幕会有绘制错位问题
+            // copyImage的时候,交换链、帧缓冲Framebuffer以及视口VKViewport都需要设置为图片大小
+            .imageExtent = imageSize,
             .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
             .preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR,
+            .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
             .imageArrayLayers = 1,
             .imageSharingMode = VK_SHARING_MODE_EXCLUSIVE,
             .queueFamilyIndexCount = 1,
@@ -169,8 +171,8 @@ int VKSwapChainManager::createFrameBuffer(VKDeviceManager *deviceInfo, VkRenderP
             .layers = 1,
             .attachmentCount = 1,
             .pAttachments = attachments,
-            .width = static_cast<uint32_t>(displaySize.width),
-            .height = static_cast<uint32_t>(displaySize.height)
+            .width = static_cast<uint32_t>(imageSize.width),
+            .height = static_cast<uint32_t>(imageSize.height)
         };
 
         fbCreateInfo.attachmentCount = (depthView == VK_NULL_HANDLE ? 1 : 2);

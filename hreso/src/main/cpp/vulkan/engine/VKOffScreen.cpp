@@ -5,8 +5,8 @@
 #include "VKOffScreen.h"
 
 void VKOffScreen::createOffscreen(VKDeviceManager *deviceInfo, VKSwapChainManager *swapchain) {
-    offscreenPass.width = swapchain->displaySize.width;
-    offscreenPass.height = swapchain->displaySize.height;
+    offscreenPass.width = swapchain->imageSize.width;
+    offscreenPass.height = swapchain->imageSize.height;
 
     offscreenPass.frameBuffer.resize(num);
     offscreenPass.sampler.resize(num);
