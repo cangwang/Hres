@@ -30,7 +30,9 @@ public:
     VKEngineRenderer();
     void setOption(IOptions* option);
     void initWindow(ANativeWindow* window, IOptions* options);
+    void initOffscreen(IOptions* options); //用于离屏渲染图片
     void drawImg();
+    void drawOffscreenImg();   //用于离屏渲染图片
     bool createImageTextures();
     void deleteImageTextures();
     void createSwapChain(int width, int height);
@@ -49,8 +51,10 @@ public:
 
 private:
     void createDevice(ANativeWindow* platformWindow, VkApplicationInfo* appInfo);
+    void createOffscreenDevice(VkApplicationInfo *appInfo);
     void createSwapChain();
     void createRenderPass();
+    void createOffscreenRenderPass();
     void createFrameBuffers(VkImageView depthView = VK_NULL_HANDLE);
 
     void createUniformBuffers();
@@ -59,6 +63,7 @@ private:
 
     void createCommandPool();
     void createImageCommandPool();
+    void createOffscreenImageCommandPool();
 
     void deleteUniformBuffers();
     void deleteCommandPool();
@@ -87,6 +92,7 @@ private:
     IOptions* options;
 
     void createOffscreenReaderPassAndFramebuffer();
+    VkImage createOffscreenReaderPassAndFramebuffer(VkFormat format, int width, int height);
 };
 
 

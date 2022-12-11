@@ -23,6 +23,7 @@ public:
     ~VKRender();
 
     int createRenderPass(VKDeviceManager *deviceInfo, VKSwapChainManager *swapChainInfo);
+    int createRenderPass(VKDeviceManager *deviceInfo, VkFormat vkFormat);
 
     int createCommandPool(VKDeviceManager *deviceInfo, VKSwapChainManager *swapChainInfo,
                           VKBufferManager *bufferInfo,
@@ -33,6 +34,11 @@ public:
                           VKBufferManager *bufferInfo,
                           VKOffScreen *vkOffScreenInfo,
                           VulkanFilter* offScreenFilter, VulkanFilter* effectFilter);
+
+    int createOffscreenCommandPool(VKDeviceManager *deviceInfo,
+                                             VKBufferManager *bufferInfo, VKOffScreen *vkOffScreenInfo,
+                                             VulkanFilter *offScreenFilter,
+                                             VulkanFilter *effectFilter);
 
     int deleteCommandPool(VKDeviceManager *deviceInfo);
 

@@ -18,6 +18,7 @@ public:
     ~VKDeviceManager();
 
     int createDevice(ANativeWindow* platformWindow, VkApplicationInfo* appInfo);
+    int createOffscreenDevice(VkApplicationInfo *appInfo);
 
     VkInstance instance;
     VkPhysicalDevice physicalDevice;

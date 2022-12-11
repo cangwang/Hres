@@ -4,6 +4,14 @@
 
 #include "VulkanFilter.h"
 
+VulkanFilter::~VulkanFilter() {
+    options = nullptr;
+    pVertexShader = nullptr;
+    pFragShader = nullptr;
+    //清除缓存,其实缓存复用只能让创建压力减少，这里都是单次渲染并没有很大的利用价值
+    vkDestroyPipelineCache(context.device, pipeline.cache_, nullptr);
+}
+
 int VulkanFilter::init(VkDevice device, VkRenderPass renderPass) {
     if (isInit){
         return VK_SUCCESS;

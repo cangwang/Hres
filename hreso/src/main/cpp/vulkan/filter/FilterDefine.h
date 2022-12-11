@@ -7,7 +7,7 @@
 
 #include <vulkan_wrapper/vulkan_wrapper.h>
 
-typedef struct  FilterPipeline{
+typedef struct FilterPipeline{
     VkDescriptorSetLayout descLayout_;
     VkDescriptorPool descPool_;
     VkDescriptorSet descSet_;

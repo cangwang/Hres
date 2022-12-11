@@ -74,6 +74,20 @@ class MainActivity : AppCompatActivity() {
                 .setShowVideo(false)
                 .start()
         }
+        button_vulkan_transform_show.setOnClickListener {
+            clickType = 4
+            PickPhotoView.Builder(this@MainActivity)
+                .setPickPhotoSize(1)
+                .setClickSelectable(true)             // click one image immediately close and return image
+                .setShowCamera(true)
+                .setHasPhotoSize(7)
+                .setAllPhotoSize(10)
+                .setSpanCount(3)
+                .setLightStatusBar(false)
+                .setShowGif(false)                    // is show gif
+                .setShowVideo(false)
+                .start()
+        }
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -104,6 +118,9 @@ class MainActivity : AppCompatActivity() {
                     }
                     3 -> {
                         Intent(this, VulkanImageShowActivity::class.java)
+                    }
+                    4-> {
+                        Intent(this, VulkanImageTransformActivity::class.java)
                     }
                     else -> {
                         Intent(this, ImageTransformActivity::class.java)

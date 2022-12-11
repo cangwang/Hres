@@ -4,7 +4,9 @@
 
 #include "ImageVulkanHresTransformer.h"
 
-ImageVulkanHresTransformer::ImageVulkanHresTransformer(): engine(make_shared<VKEngineRenderer>()) {
+ImageVulkanHresTransformer::ImageVulkanHresTransformer(): engine(make_shared<VKEngineRenderer>()),
+                                                        window(nullptr),options(nullptr), image(
+                nullptr) {
 
 }
 
@@ -61,13 +63,17 @@ void ImageVulkanHresTransformer::transform() {
     }
     HLOGV("transform, width %i, height %i, channel %i", options->srcWidth, options->srcHeight, options->srcChannel);
 //    long length = options->srcWidth * options->srcHeight * options->srcChannel;
-    if (engine != nullptr && this->window != nullptr) {
+    if (this->window != nullptr) {
+        HLOGV("transform, initWindow");
         engine->initWindow(window, options);
+        engine->setOption(options);
+        engine->drawImg();
     } else {
-        HLOGE("transform, window is null");
+        HLOGV("transform, initOffscreen");
+        engine->initOffscreen(options);
+        engine->drawOffscreenImg();
     }
-    engine->setOption(options);
-    engine->drawImg();
+
     //释放图片内存
     LoadTextureUtil::releaseImage(image);
 }

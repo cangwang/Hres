@@ -29,7 +29,7 @@ class ImageTransformActivity: AppCompatActivity() {
         val srcBitmap = BitmapFactory.decodeFile(selectPaths.path)
         btn_album_src.setImageBitmap(srcBitmap)
         val engineOption = EngineOptionParams()
-        HresJniUtil.nativeCreateTransformer("image", engineOption.toJson(), null)
+        HresJniUtil.nativeCreateTransformer("ImageTransform", engineOption.toJson(), null)
         HresJniUtil.nativeSetListener(object : HresListener {
             override fun hresTransformStart(imageOption: ImageOptionParams) {
 

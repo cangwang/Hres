@@ -21,11 +21,8 @@ public:
     VulkanFilter() : pVertexShader(showVertexShader), pFragShader(showFragShader) {
         pushConstant.resize(0);
     }
-    ~VulkanFilter() {
-        options = nullptr;
-        pVertexShader = nullptr;
-        pFragShader = nullptr;
-    }
+    ~VulkanFilter();
+
     virtual int init(VkDevice device,VkRenderPass renderPass);
 
     virtual int buildRenderPass(VkCommandBuffer commandBuffer,VkRenderPass renderPass,VkFramebuffer framebuffer);

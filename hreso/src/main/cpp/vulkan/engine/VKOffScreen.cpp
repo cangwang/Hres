@@ -5,8 +5,13 @@
 #include "VKOffScreen.h"
 
 void VKOffScreen::createOffscreen(VKDeviceManager *deviceInfo, VKSwapChainManager *swapchain) {
-    offscreenPass.width = swapchain->imageSize.width;
-    offscreenPass.height = swapchain->imageSize.height;
+    num = swapchain->swapchainLength;
+    createOffscreen(deviceInfo, swapchain->displayFormat, swapchain->imageSize.width, swapchain->imageSize.height);
+}
+
+VkImage VKOffScreen::createOffscreen(VKDeviceManager *deviceInfo, VkFormat format, int width, int height) {
+    offscreenPass.width = width;
+    offscreenPass.height = height;
 
     offscreenPass.frameBuffer.resize(num);
     offscreenPass.sampler.resize(num);
@@ -18,7 +23,7 @@ void VKOffScreen::createOffscreen(VKDeviceManager *deviceInfo, VKSwapChainManage
         image.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
         image.pNext = nullptr,
         image.imageType = VK_IMAGE_TYPE_2D,
-        image.format = swapchain->displayFormat,
+        image.format = format,
         image.extent.width = static_cast<uint32_t>(offscreenPass.width),
         image.extent.height = static_cast<uint32_t>(offscreenPass.height),
         image.mipLevels = 1,
@@ -53,7 +58,7 @@ void VKOffScreen::createOffscreen(VKDeviceManager *deviceInfo, VKSwapChainManage
         colorImageView.pNext = nullptr;
         colorImageView.image = offscreenPass.color[i].image;
         colorImageView.viewType = VK_IMAGE_VIEW_TYPE_2D;
-        colorImageView.format  = swapchain->displayFormat;
+        colorImageView.format  = format;
         colorImageView.subresourceRange = {
                 .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
                 .baseMipLevel = 0,
@@ -92,7 +97,7 @@ void VKOffScreen::createOffscreen(VKDeviceManager *deviceInfo, VKSwapChainManage
                                 &offscreenPass.sampler[i]));
         //包括image格式，采样次数和渲染前后的操作
         VkAttachmentDescription attachmentDescriptions {
-                .format = swapchain->displayFormat,
+                .format = format,
                 .samples = VK_SAMPLE_COUNT_1_BIT,
                 .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
                 .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
@@ -154,6 +159,7 @@ void VKOffScreen::createOffscreen(VKDeviceManager *deviceInfo, VKSwapChainManage
         offscreenPass.descriptor[i].imageView = offscreenPass.color[i].view;
         offscreenPass.descriptor[i].sampler = offscreenPass.sampler[i];
     }
+    return offscreenPass.color[num-1].image;
 }
 
 int

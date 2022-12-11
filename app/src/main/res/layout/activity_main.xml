@@ -6,37 +6,43 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-
-    <Button
-        android:id="@+id/button_album"
-        android:layout_width="200dp"
+    <RelativeLayout
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="直接转换"
-        android:layout_marginTop="10dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"/>
+        app:layout_constraintTop_toTopOf="parent">
 
-    <Button
-        android:id="@+id/button_image_show"
-        android:layout_width="200dp"
-        android:layout_height="wrap_content"
-        android:text="显示渲染"
-        android:layout_marginTop="10dp"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/button_album"/>
+        <Button
+            android:id="@+id/button_album"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:text="直接转换"
+            android:layout_marginTop="10dp" />
 
-    <Button
-        android:id="@+id/button_vulkan_image_show"
-        android:layout_width="200dp"
-        android:layout_height="wrap_content"
-        android:text="Vulkan显示渲染"
-        android:layout_marginTop="10dp"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/button_image_show"/>
+        <Button
+            android:id="@+id/button_image_show"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:text="显示渲染"
+            android:layout_marginTop="10dp"
+            android:layout_below="@+id/button_album"/>
 
+        <Button
+            android:id="@+id/button_vulkan_image_show"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:text="Vulkan显示渲染"
+            android:layout_marginTop="10dp"
+            android:layout_below="@+id/button_image_show"/>
 
+        <Button
+            android:id="@+id/button_vulkan_transform_show"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:text="Vulkan直接转换"
+            android:layout_marginTop="10dp"
+            android:layout_below="@+id/button_vulkan_image_show"/>
+    </RelativeLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

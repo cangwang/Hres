@@ -74,7 +74,7 @@ int VKSwapChainManager::createSwapChain(VKDeviceManager *info, int width, int he
     uint32_t chosenFormat;
     for (int i = 0; i <formatCount; ++i) {
         // RGBA格式
-        if (formats[i].format ==  VK_FORMAT_R8G8B8A8_UNORM) {
+        if (formats[i].format == VK_FORMAT_R8G8B8A8_UNORM) {
             chosenFormat = i;
             break;
         }

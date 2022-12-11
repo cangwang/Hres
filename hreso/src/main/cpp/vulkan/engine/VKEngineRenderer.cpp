@@ -4,7 +4,7 @@
 
 #include "VKEngineRenderer.h"
 
-VKEngineRenderer::VKEngineRenderer() {
+VKEngineRenderer::VKEngineRenderer(): offscreenFilter(nullptr), effectFilter(nullptr), vulkanFilter(nullptr) {
     vkRenderInfo = new VKRender;
     vkBufferInfo = new VKBufferManager;
     vkSwapChainInfo = new VKSwapChainManager;
@@ -43,6 +43,12 @@ VKEngineRenderer::init(ANativeWindow *window, size_t width, size_t height, AAsse
         LOGE("Vulkan is unavailable, install vulkan and re-start");
         return;
     }
+    vulkanFilter = new VulkanFilter;
+//    offscreenFilter = new OffScreenFilter;
+    offscreenFilter = new VulkanFilter;
+    this->filterType = options->getFilterType();
+    effectFilter = FilterUtil::getFilterByType(options->getFilterType());
+
     VkApplicationInfo appInfo {
             .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
             .pNext = nullptr,
@@ -56,18 +62,11 @@ VKEngineRenderer::init(ANativeWindow *window, size_t width, size_t height, AAsse
     createSwapChain();
 }
 
-void
-VKEngineRenderer::initWindow(ANativeWindow *window, IOptions* options) {
+void VKEngineRenderer::initWindow(ANativeWindow *window, IOptions* options) {
     if (options == nullptr) {
         HLOGE("initWindow options is null");
         return;
     }
-
-    vulkanFilter = new VulkanFilter;
-//    offscreenFilter = new OffScreenFilter;
-    offscreenFilter = new VulkanFilter;
-    this->filterType = options->getFilterType();
-    effectFilter = FilterUtil::getFilterByType(options->getFilterType());
 
     this->options = options;
     m_backingWidth = options->srcWidth;
@@ -76,18 +75,64 @@ VKEngineRenderer::initWindow(ANativeWindow *window, IOptions* options) {
         LOGE("Vulkan is unavailable, install vulkan and re-start");
         return;
     }
+
+    vulkanFilter = new VulkanFilter;
+//    offscreenFilter = new OffScreenFilter;
+    offscreenFilter = new VulkanFilter;
+    this->filterType = options->getFilterType();
+    effectFilter = FilterUtil::getFilterByType(options->getFilterType());
+    if (options != nullptr) {
+        effectFilter->setOption(options);
+    }
     VkApplicationInfo appInfo {
             .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
             .pNext = nullptr,
             .apiVersion = VK_MAKE_VERSION(1, 0, 0),
             .applicationVersion = VK_MAKE_VERSION(1, 0, 0),
             .engineVersion = VK_MAKE_VERSION(1, 0, 0),
-            .pApplicationName = "camera2GLPreview",
+            .pApplicationName = "dillImage",
             .pEngineName = "camera",
     };
     createDevice(window, &appInfo);
     createSwapChain(options->srcWidth, options->srcHeight);
 //    createSwapChain();
+}
+
+void VKEngineRenderer::initOffscreen(IOptions* options) {
+    if (options == nullptr) {
+        HLOGE("initWindow options is null");
+        return;
+    }
+
+    this->options = options;
+    m_backingWidth = options->srcWidth;
+    m_backingHeight = options->srcHeight;
+    if (!InitVulkan()) {
+        LOGE("Vulkan is unavailable, install vulkan and re-start");
+        return;
+    }
+
+//    this->filterType = options->getFilterType();
+//    offscreenFilter = FilterUtil::getFilterByType(options->getFilterType());
+//    offscreenFilter->setOption(options);
+
+    offscreenFilter = new VulkanFilter;
+    this->filterType = options->getFilterType();
+    effectFilter = FilterUtil::getFilterByType(options->getFilterType());
+    if (options != nullptr) {
+        effectFilter->setOption(options);
+    }
+
+    VkApplicationInfo appInfo {
+            .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
+            .pNext = nullptr,
+            .apiVersion = VK_MAKE_VERSION(1, 0, 0),
+            .applicationVersion = VK_MAKE_VERSION(1, 0, 0),
+            .engineVersion = VK_MAKE_VERSION(1, 0, 0),
+            .pApplicationName = "offscreenImage",
+            .pEngineName = "camera",
+    };
+    createOffscreenDevice(&appInfo);
 }
 
 void VKEngineRenderer::render() {
@@ -321,7 +366,9 @@ void VKEngineRenderer::drawImg() {
         LOGI("zhy vec image info size is %d", vecImageInfo.size());
 
         offscreenFilter->updateDescriptorSet(vecBufferInfo,vecImageInfo);
-
+        if (options != nullptr) {
+            effectFilter->setOption(options);
+        }
         effectFilter->init(vkDeviceInfo->device,vkOffScreenInfo->offscreenPass.renderPass);
 
         effectFilter->updateDescriptorSet(vkOffScreenInfo->offscreenPass.descriptor[0].sampler,
@@ -341,7 +388,9 @@ void VKEngineRenderer::drawImg() {
 
         this->filterType = filterType;
         effectFilter = FilterUtil::getFilterByType(filterType);
-        effectFilter->setOption(options);
+        if (options != nullptr) {
+            effectFilter->setOption(options);
+        }
         effectFilter->init(vkDeviceInfo->device,vkOffScreenInfo->offscreenPass.renderPass);
 
         std::vector<VkDescriptorBufferInfo> vecBufferInfo;
@@ -382,6 +431,81 @@ void VKEngineRenderer::drawImg() {
         render();
     }
     vkTextureInfo->saveImage(vkDeviceInfo, options->getSaveAddress().c_str(), vkSwapChainInfo->lastDisplayImage);
+}
+
+void VKEngineRenderer::drawOffscreenImg() {
+    HLOGV("drawOffscreenImg");
+    if (options == nullptr) {
+        HLOGE("drawImg options is null");
+        return;
+    }
+    this->path = options->getAddress();
+    m_length = options->srcWidth * options->srcHeight * 4;
+    m_rotation = options->getRotation();
+
+    m_width = options->srcWidth;
+    m_height = options->srcHeight;
+
+    VkImage image;
+    if (!vkDeviceInfo->initialized) {
+        createVertexBuffer();
+        createIndexBuffer();
+        createUniformBuffers();
+        createImageTextures();
+        //创建离线渲染的image
+        image = createOffscreenReaderPassAndFramebuffer(VK_FORMAT_R8G8B8A8_UNORM, m_width, m_height);
+
+        offscreenFilter->init(vkDeviceInfo->device, vkOffScreenInfo->offscreenPass.renderPass);
+
+        vector<VkDescriptorBufferInfo> vecBufferInfo;
+        vecBufferInfo.resize(1);
+
+        VkDescriptorBufferInfo bufferInfo {
+                .buffer = vkBufferInfo->uboBuffer,
+                .offset = 0,
+                .range = sizeof (UniformBufferObject)
+        };
+
+        vecBufferInfo[0] = bufferInfo;
+
+        LOGI("zhy vec buffer info size is %d",vecBufferInfo.size());
+
+        vector<VkDescriptorImageInfo> vecImageInfo;
+        vecImageInfo.resize(1);
+        VkDescriptorImageInfo texDsts[1];
+        memset(texDsts, 0, sizeof(texDsts));
+
+        texDsts[0].sampler = vkTextureInfo->testTexture[0].sampler;
+        texDsts[0].imageView = vkTextureInfo->testTexture[0].view;
+        texDsts[0].imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+        vecImageInfo[0] = texDsts[0];
+
+        LOGI("zhy vec image info size is %d", vecImageInfo.size());
+
+        offscreenFilter->updateDescriptorSet(vecBufferInfo,vecImageInfo);
+        if (options != nullptr) {
+            effectFilter->setOption(options);
+        }
+        effectFilter->init(vkDeviceInfo->device,vkOffScreenInfo->offscreenPass.renderPass);
+
+        effectFilter->updateDescriptorSet(vkOffScreenInfo->offscreenPass.descriptor[0].sampler,
+                                          vkOffScreenInfo->offscreenPass.descriptor[0].imageView,
+                                          VK_IMAGE_LAYOUT_GENERAL);
+
+        createOffscreenImageCommandPool();
+        vkDeviceInfo->initialized = true;
+    }
+
+    if (m_CurrentProcess != m_LastProcess) {
+        m_LastProcess = m_CurrentProcess;
+        createOffscreenImageCommandPool();
+        LOGE("zhy m_CurrentProcess != m_LastProcess create command pool");
+    }
+    //离屏渲染不需要render
+//    if (vkDeviceInfo->initialized) {
+//        render();
+//    }
+    vkTextureInfo->saveImage(vkDeviceInfo, options->getSaveAddress().c_str(), &image);
 }
 
 void VKEngineRenderer::setParameters(uint32_t params) {
@@ -434,6 +558,10 @@ void VKEngineRenderer::createDevice(ANativeWindow *platformWindow, VkApplication
     vkDeviceInfo->createDevice(platformWindow, appInfo);
 }
 
+void VKEngineRenderer::createOffscreenDevice(VkApplicationInfo *appInfo) {
+    vkDeviceInfo->createOffscreenDevice(appInfo);
+}
+
 void VKEngineRenderer::createSwapChain() {
     vkSwapChainInfo->createSwapChain(vkDeviceInfo);
 }
@@ -444,6 +572,10 @@ void VKEngineRenderer::createSwapChain(int width, int height) {
 
 void VKEngineRenderer::createRenderPass() {
     vkRenderInfo->createRenderPass(vkDeviceInfo, vkSwapChainInfo);
+}
+
+void VKEngineRenderer::createOffscreenRenderPass() {
+    vkRenderInfo->createRenderPass(vkDeviceInfo, VK_FORMAT_R8G8B8A8_UNORM);
 }
 
 void VKEngineRenderer::createFrameBuffers(VkImageView depthView) {
@@ -476,6 +608,11 @@ void VKEngineRenderer::createImageCommandPool() {
                                     effectFilter);
 }
 
+void VKEngineRenderer::createOffscreenImageCommandPool() {
+    vkRenderInfo->createOffscreenCommandPool(vkDeviceInfo, vkBufferInfo, vkOffScreenInfo, offscreenFilter,
+                                    effectFilter);
+}
+
 void VKEngineRenderer::deleteUniformBuffers() {
     vkDestroyBuffer(vkDeviceInfo->device, vkBufferInfo->uboBuffer, nullptr);
     vkFreeMemory(vkDeviceInfo->device, vkBufferInfo->uboBufferMemory, nullptr);
@@ -487,4 +624,8 @@ void VKEngineRenderer::deleteCommandPool() {
 
 void VKEngineRenderer::createOffscreenReaderPassAndFramebuffer() {
     vkOffScreenInfo->createOffscreen(vkDeviceInfo,vkSwapChainInfo);
+}
+
+VkImage VKEngineRenderer::createOffscreenReaderPassAndFramebuffer(VkFormat format, int width, int height) {
+    return vkOffScreenInfo->createOffscreen(vkDeviceInfo, format, width, height);
 }

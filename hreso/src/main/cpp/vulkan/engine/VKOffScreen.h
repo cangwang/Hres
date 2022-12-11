@@ -44,6 +44,8 @@ public:
 
     void createOffscreen(VKDeviceManager*deviceInfo, VKSwapChainManager *swapChainInfo);
 
+    VkImage createOffscreen(VKDeviceManager*deviceInfo, VkFormat format, int width, int height);
+
     int updateOffScreenDescriptorSet(VKDeviceManager *deviceInfo, VKBufferManager *bufferInfo, VKTextureManager *textureInfo);
 
 

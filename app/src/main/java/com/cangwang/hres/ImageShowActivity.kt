@@ -35,7 +35,7 @@ class ImageShowActivity: AppCompatActivity(), TextureView.SurfaceTextureListener
     override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
         val s = Surface(surface)
         val engineOption = EngineOptionParams()
-        HresJniUtil.nativeCreateTransformer("showImage", engineOption.toJson(), s)
+        HresJniUtil.nativeCreateTransformer("ImageShow", engineOption.toJson(), s)
         HresJniUtil.nativeUpdateViewPoint(width, height)
         HresJniUtil.nativeSetListener(object : HresListener {
             override fun hresTransformStart(imageOption: ImageOptionParams) {
