@@ -12,7 +12,7 @@ using namespace std;
 class FsrVulkanFilter : public VulkanFilter {
 public:
     const char* fsrShader =
-            "#version 400\n"
+            "#version 450\n"
             "#extension GL_ARB_separate_shader_objects : enable\n"
             "#extension GL_ARB_shading_language_420pack : enable\n"
             "precision highp float;\n"

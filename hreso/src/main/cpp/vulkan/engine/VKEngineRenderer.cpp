@@ -4,7 +4,8 @@
 
 #include "VKEngineRenderer.h"
 
-VKEngineRenderer::VKEngineRenderer(): offscreenFilter(nullptr), effectFilter(nullptr), vulkanFilter(nullptr) {
+VKEngineRenderer::VKEngineRenderer(): offscreenFilter(nullptr),
+                        effectFilter(nullptr), vulkanFilter(nullptr), listener(nullptr) {
     vkRenderInfo = new VKRender;
     vkBufferInfo = new VKBufferManager;
     vkSwapChainInfo = new VKSwapChainManager;
@@ -30,6 +31,7 @@ VKEngineRenderer::~VKEngineRenderer() {
     deleteCommandPool();
     path.clear();
     options = nullptr;
+    listener = nullptr;
 }
 
 void
@@ -212,6 +214,8 @@ void VKEngineRenderer::renderOffscreen() {
     //使用vkQueueSubmit函数向图像队列提交命令缓冲区。当开销负载比较大的时候，处于效率考虑，函数可以持有VkSubmitInfo结构体数组。最后一个参数引用了一个可选的栅栏，当命令缓冲区执行完毕时候它会被发送信号
     CALL_VK(vkQueueSubmit(vkDeviceInfo->queue,1,&submitInfo,vkRenderInfo->fence));
     CALL_VK(vkWaitForFences(vkDeviceInfo->device,1,&vkRenderInfo->fence,VK_TRUE,100000000));
+    //Todo 等待设备停止执行所有指令，保证已经绘制完成, 可以尝试拦截等待其他命令
+    //相当于CPU会浪费大量时间等待GPU计算
     vkQueueWaitIdle(vkDeviceInfo->queue);
 }
 
@@ -535,9 +539,35 @@ void VKEngineRenderer::drawOffscreenImg() {
     if (vkDeviceInfo->initialized) {
         renderOffscreen();
     }
-    vkTextureInfo->saveImage(vkDeviceInfo, options->getSaveAddress().c_str(), vkSwapChainInfo->lastDisplayImage);
+//    vkTextureInfo->saveImage(vkDeviceInfo, options->getSaveAddress().c_str(), vkSwapChainInfo->lastDisplayImage);
+    string address;
+    string error;
+    if (options != nullptr) {
+        if (options->getSaveAddress().empty()) {
+            HLOGV("saveAddress is null, use origin address");
+            address = options->getAddress();
+        } else {
+            address = options->getSaveAddress();
+        }
+        if (options->getScaleWidth() > 0 && options->getScaleHeight() > 0) {
+            vkTextureInfo->saveImage(vkDeviceInfo, address.c_str(), vkSwapChainInfo->lastDisplayImage);
+        } else {
+            error = "error scaleImgWidth || scaleImgHeight = 0";
+        }
+    }
+
+    if (listener != nullptr) {
+        if (error.empty()) {
+            listener->filterRenderComplete(options);
+        } else {
+            listener->filterRenderFail(options, error);
+        }
+    }
 }
 
+void VKEngineRenderer::setListener(FilterListener *listener) {
+    this->listener = listener;
+}
 void VKEngineRenderer::setParameters(uint32_t params) {
     m_params = params;
 }

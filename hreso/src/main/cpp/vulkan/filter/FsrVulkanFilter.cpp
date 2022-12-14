@@ -5,6 +5,8 @@
 #include "FsrVulkanFilter.h"
 
 void FsrVulkanFilter::setOption(IOptions *option) {
-    pushConstant[0] = option->srcWidth;
-    pushConstant[1] = option->srcHeight;
+    w = option->srcWidth;
+    h = option->srcHeight;
+    pushConstant[0] = (float) option->srcWidth;
+    pushConstant[1] = (float) option->srcHeight;
 }

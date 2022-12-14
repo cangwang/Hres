@@ -20,6 +20,7 @@
 #include <vulkan/filter/EffectFilter.h>
 #include <vulkan/filter/FilterUtil.h>
 #include <util/loadtextureutil.h>
+#include <filter/filterlistener.h>
 
 #define LOG_TAG "VKEngineRenderer"
 #define HLOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
@@ -35,6 +36,7 @@ public:
     void drawOffscreenImg();   //用于离屏渲染图片
     bool createImageTextures();
     void deleteImageTextures();
+    void setListener(FilterListener *listener);
     virtual ~VKEngineRenderer();
 
     virtual void init(ANativeWindow* window, size_t width, size_t height,AAssetManager* manager) override;
@@ -94,6 +96,7 @@ private:
     uint32_t m_LastProcess = 0;
     bool useYUV = false;
     IOptions* options;
+    FilterListener* listener;
 
     void createOffscreenReaderPassAndFramebuffer();
     VkImage createOffscreenReaderPassAndFramebuffer(VkFormat format, int width, int height);

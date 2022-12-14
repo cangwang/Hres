@@ -5,7 +5,7 @@
 #ifndef HRES_VKSHADER_H
 #define HRES_VKSHADER_H
 
-static const char showVertexShader[] = "#version 400\n"
+static const char showVertexShader[] = "#version 450\n"
                                        "#extension GL_ARB_separate_shader_objects : enable\n"
                                        "#extension GL_ARB_shading_language_420pack : enable\n"
                                        "layout (location = 0) in vec4 pos;\n"
@@ -16,7 +16,7 @@ static const char showVertexShader[] = "#version 400\n"
                                        "    gl_Position = pos;\n"
                                        "}";
 
-static const char showFragShader[] = "#version 400\n"
+static const char showFragShader[] = "#version 450\n"
                                      "#extension GL_ARB_separate_shader_objects : enable\n"
                                      "#extension GL_ARB_shading_language_420pack : enable\n"
                                      "layout (binding = 0) uniform sampler2D tex;\n"
@@ -27,7 +27,7 @@ static const char showFragShader[] = "#version 400\n"
                                      "}";
 
 static const char kVertexShader[] = \
-    "#version 400\n \
+    "#version 450\n \
     #extension GL_ARB_separate_shader_objects : enable\n \
     #extension GL_ARB_shading_language_420pack : enable\n \
     layout (location = 0) in vec4 pos; \
@@ -45,7 +45,7 @@ static const char kVertexShader[] = \
     }";
 
 static const char kFragmentShader[] = \
-    "#version 400\n \
+    "#version 450\n \
     #extension GL_ARB_separate_shader_objects : enable\n \
     #extension GL_ARB_shading_language_420pack : enable\n \
     layout (binding = 1) uniform sampler2D tex[3]; \

@@ -67,10 +67,12 @@ void ImageVulkanHresTransformer::transform() {
         HLOGV("transform, initWindow");
         engine->initWindow(window, options);
         engine->setOption(options);
+        engine->setListener(listener);
         engine->drawImg();
     } else {
         HLOGV("transform, initOffscreen");
         engine->initOffscreen(options);
+        engine->setListener(listener);
         engine->drawOffscreenImg();
     }
 
