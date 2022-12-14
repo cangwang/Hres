@@ -119,9 +119,7 @@ void VKEngineRenderer::initOffscreen(IOptions* options) {
     offscreenFilter = new VulkanFilter;
     this->filterType = options->getFilterType();
     effectFilter = FilterUtil::getFilterByType(options->getFilterType());
-    if (options != nullptr) {
-        effectFilter->setOption(options);
-    }
+    effectFilter->setOption(options);
 
     VkApplicationInfo appInfo {
             .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
@@ -133,6 +131,7 @@ void VKEngineRenderer::initOffscreen(IOptions* options) {
             .pEngineName = "camera",
     };
     createOffscreenDevice(&appInfo);
+    createOffscreenChain(options->srcWidth, options->srcHeight);
 }
 
 void VKEngineRenderer::render() {
@@ -186,6 +185,34 @@ void VKEngineRenderer::render() {
     };
     //vkQueuePresentKHR函数提交请求呈现交换链中的图像
     vkQueuePresentKHR(vkDeviceInfo->queue,&presentInfo);
+}
+
+void VKEngineRenderer::renderOffscreen() {
+    CALL_VK(vkResetFences(vkDeviceInfo->device, 1, &vkRenderInfo->fence))
+
+    VkPipelineStageFlags waitStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    VkSubmitInfo submitInfo {
+            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+            .pNext = nullptr,
+            .waitSemaphoreCount = 0,
+            //设置等待信号量
+            .pWaitSemaphores = nullptr,
+            .pWaitDstStageMask = &waitStageMask,
+            .commandBufferCount = 1,
+            .pCommandBuffers = &vkRenderInfo->cmdBuffer[vkRenderInfo->cmdBufferLen - 1],
+            .signalSemaphoreCount = 0,
+            .pSignalSemaphores = nullptr
+    };
+
+    if (vkDeviceInfo->queue == nullptr){
+        LOGE("zhy vkDeviceInfo->queue == nullptr");
+        return ;
+    }
+
+    //使用vkQueueSubmit函数向图像队列提交命令缓冲区。当开销负载比较大的时候，处于效率考虑，函数可以持有VkSubmitInfo结构体数组。最后一个参数引用了一个可选的栅栏，当命令缓冲区执行完毕时候它会被发送信号
+    CALL_VK(vkQueueSubmit(vkDeviceInfo->queue,1,&submitInfo,vkRenderInfo->fence));
+    CALL_VK(vkWaitForFences(vkDeviceInfo->device,1,&vkRenderInfo->fence,VK_TRUE,100000000));
+    vkQueueWaitIdle(vkDeviceInfo->queue);
 }
 
 void VKEngineRenderer::updateFrame(const video_frame &frame) {
@@ -446,14 +473,15 @@ void VKEngineRenderer::drawOffscreenImg() {
     m_width = options->srcWidth;
     m_height = options->srcHeight;
 
-    VkImage image;
     if (!vkDeviceInfo->initialized) {
+        createOffscreenRenderPass();
+        createOffscreenFrameBuffers();
         createVertexBuffer();
         createIndexBuffer();
         createUniformBuffers();
         createImageTextures();
         //创建离线渲染的image
-        image = createOffscreenReaderPassAndFramebuffer(VK_FORMAT_R8G8B8A8_UNORM, m_width, m_height);
+        createOffscreenReaderPassAndFramebuffer(offscreenFormat, m_width, m_height);
 
         offscreenFilter->init(vkDeviceInfo->device, vkOffScreenInfo->offscreenPass.renderPass);
 
@@ -486,26 +514,28 @@ void VKEngineRenderer::drawOffscreenImg() {
         if (options != nullptr) {
             effectFilter->setOption(options);
         }
-        effectFilter->init(vkDeviceInfo->device,vkOffScreenInfo->offscreenPass.renderPass);
+        effectFilter->init(vkDeviceInfo->device, vkOffScreenInfo->offscreenPass.renderPass);
 
         effectFilter->updateDescriptorSet(vkOffScreenInfo->offscreenPass.descriptor[0].sampler,
                                           vkOffScreenInfo->offscreenPass.descriptor[0].imageView,
                                           VK_IMAGE_LAYOUT_GENERAL);
 
-        createOffscreenImageCommandPool();
+//        createOffscreenImageCommandPool();
+        createImageCommandPool();
         vkDeviceInfo->initialized = true;
     }
 
     if (m_CurrentProcess != m_LastProcess) {
         m_LastProcess = m_CurrentProcess;
-        createOffscreenImageCommandPool();
+//        createOffscreenImageCommandPool();
+        createImageCommandPool();
         LOGE("zhy m_CurrentProcess != m_LastProcess create command pool");
     }
-    //离屏渲染不需要render
-//    if (vkDeviceInfo->initialized) {
-//        render();
-//    }
-    vkTextureInfo->saveImage(vkDeviceInfo, options->getSaveAddress().c_str(), &image);
+
+    if (vkDeviceInfo->initialized) {
+        renderOffscreen();
+    }
+    vkTextureInfo->saveImage(vkDeviceInfo, options->getSaveAddress().c_str(), vkSwapChainInfo->lastDisplayImage);
 }
 
 void VKEngineRenderer::setParameters(uint32_t params) {
@@ -570,16 +600,24 @@ void VKEngineRenderer::createSwapChain(int width, int height) {
     vkSwapChainInfo->createSwapChain(vkDeviceInfo, width, height);
 }
 
+void VKEngineRenderer::createOffscreenChain(int width, int height) {
+    vkSwapChainInfo->createOffscreen(offscreenFormat, width, height);
+}
+
 void VKEngineRenderer::createRenderPass() {
     vkRenderInfo->createRenderPass(vkDeviceInfo, vkSwapChainInfo);
 }
 
 void VKEngineRenderer::createOffscreenRenderPass() {
-    vkRenderInfo->createRenderPass(vkDeviceInfo, VK_FORMAT_R8G8B8A8_UNORM);
+    vkRenderInfo->createRenderPass(vkDeviceInfo, offscreenFormat);
 }
 
 void VKEngineRenderer::createFrameBuffers(VkImageView depthView) {
     vkSwapChainInfo->createFrameBuffer(vkDeviceInfo, &vkRenderInfo->renderPass, depthView);
+}
+
+void VKEngineRenderer::createOffscreenFrameBuffers(VkImageView depthView) {
+    vkSwapChainInfo->createOffscreenFrameBuffer(vkDeviceInfo, &vkRenderInfo->renderPass, depthView);
 }
 
 void VKEngineRenderer::createUniformBuffers() {

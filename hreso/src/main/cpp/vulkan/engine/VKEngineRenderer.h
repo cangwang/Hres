@@ -35,7 +35,6 @@ public:
     void drawOffscreenImg();   //用于离屏渲染图片
     bool createImageTextures();
     void deleteImageTextures();
-    void createSwapChain(int width, int height);
     virtual ~VKEngineRenderer();
 
     virtual void init(ANativeWindow* window, size_t width, size_t height,AAssetManager* manager) override;
@@ -54,7 +53,11 @@ private:
     void createOffscreenDevice(VkApplicationInfo *appInfo);
     void createSwapChain();
     void createRenderPass();
+    void createSwapChain(int width, int height);
+    void createOffscreenChain(int width, int height);
+    void createOffscreenFrameBuffers(VkImageView depthView = VK_NULL_HANDLE);
     void createOffscreenRenderPass();
+    void renderOffscreen();
     void createFrameBuffers(VkImageView depthView = VK_NULL_HANDLE);
 
     void createUniformBuffers();
@@ -78,6 +81,7 @@ private:
     uint8_t *m_pBuffer;
     size_t m_length;
     string path;
+    VkFormat offscreenFormat = VK_FORMAT_R8G8B8A8_SNORM;
 
     VulkanFilter *vulkanFilter;
 //    OffScreenFilter *offscreenFilter;

@@ -17,7 +17,12 @@ public:
 
     int createSwapChain(VKDeviceManager* info);
     int createSwapChain(VKDeviceManager* info, int width, int height);
+    int createOffscreen(VkFormat format, int width, int height);
     int createFrameBuffer(VKDeviceManager* deviceInfo, VkRenderPass* renderPass, VkImageView depthView = VK_NULL_HANDLE);
+    int createOffscreenFrameBuffer(VKDeviceManager *deviceInfo, VkRenderPass* renderPass,
+                                                       VkImageView depthView);
+    VkResult allocateMemoryTypeFromProperties(VKDeviceManager *deviceInfo, uint32_t typeBits,
+                                                                  VkFlags requirements_mask, uint32_t *typeIndex);
 
     VkSwapchainKHR swapchain;
     uint32_t swapchainLength;
@@ -29,6 +34,7 @@ public:
     unique_ptr<VkFramebuffer[]> framebuffers;
     unique_ptr<VkImage[]> displayImages;
     unique_ptr<VkImageView[]> displayViews;
+    unique_ptr<VkDeviceMemory[]> displayMem;
     VkImage* lastDisplayImage;
 };
 

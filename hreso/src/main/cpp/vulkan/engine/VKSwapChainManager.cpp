@@ -116,6 +116,16 @@ int VKSwapChainManager::createSwapChain(VKDeviceManager *info, int width, int he
     return 0;
 }
 
+int VKSwapChainManager::createOffscreen(VkFormat format, int width, int height) {
+    //图片大小
+    imageSize = VkExtent2D();
+    imageSize.width = width;
+    imageSize.height = height;
+    displayFormat = format;
+    swapchainLength = 1;
+    return 0;
+}
+
 int VKSwapChainManager::createFrameBuffer(VKDeviceManager *deviceInfo, VkRenderPass* renderPass,
                                           VkImageView depthView) {
     //图像被交换链创建，也会在交换链销毁的同时自动清理，所以我们不需要添加任何清理代码
@@ -131,27 +141,27 @@ int VKSwapChainManager::createFrameBuffer(VKDeviceManager *deviceInfo, VkRenderP
     displayViews = make_unique<VkImageView[]>(swapChanImageCount);
     for (int i = 0; i < swapChanImageCount; ++i) {
         VkImageViewCreateInfo viewCreateInfo {
-            .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-            .pNext = nullptr,
-            .flags = 0,
-            .image = displayImages[i],
-            .viewType = VK_IMAGE_VIEW_TYPE_2D, // 2D纹理
-            .format = displayFormat,
-            //components字段允许调整颜色通道的最终的映射逻辑
-            .components = {
-                    .r = VK_COMPONENT_SWIZZLE_R,
-                    .g = VK_COMPONENT_SWIZZLE_G,
-                    .b = VK_COMPONENT_SWIZZLE_B,
-                    .a = VK_COMPONENT_SWIZZLE_A,
-            },
-            //subresourceRangle字段用于描述图像的使用目标是什么，以及可以被访问的有效区域
-            .subresourceRange = {
-                    .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                    .baseMipLevel = 0,
-                    .levelCount = 1,
-                    .baseArrayLayer = 0,
-                    .layerCount = 1,
-            }
+                .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+                .pNext = nullptr,
+                .flags = 0,
+                .image = displayImages[i],
+                .viewType = VK_IMAGE_VIEW_TYPE_2D, // 2D纹理
+                .format = displayFormat,
+                //components字段允许调整颜色通道的最终的映射逻辑
+                .components = {
+                        .r = VK_COMPONENT_SWIZZLE_R,
+                        .g = VK_COMPONENT_SWIZZLE_G,
+                        .b = VK_COMPONENT_SWIZZLE_B,
+                        .a = VK_COMPONENT_SWIZZLE_A,
+                },
+                //subresourceRangle字段用于描述图像的使用目标是什么，以及可以被访问的有效区域
+                .subresourceRange = {
+                        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                        .baseMipLevel = 0,
+                        .levelCount = 1,
+                        .baseArrayLayer = 0,
+                        .layerCount = 1,
+                }
         };
         //创建显示窗口
         CALL_VK(vkCreateImageView(deviceInfo->device, &viewCreateInfo, nullptr, &displayViews[i]))
@@ -161,18 +171,18 @@ int VKSwapChainManager::createFrameBuffer(VKDeviceManager *deviceInfo, VkRenderP
     framebuffers = make_unique<VkFramebuffer[]>(swapChanImageCount);
     for (int i = 0; i < swapchainLength; ++i) {
         VkImageView attachments[2] {
-            displayViews[i],
-            depthView
+                displayViews[i],
+                depthView
         };
         VkFramebufferCreateInfo fbCreateInfo {
-            .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-            .pNext = nullptr,
-            .renderPass = *renderPass,
-            .layers = 1,
-            .attachmentCount = 1,
-            .pAttachments = attachments,
-            .width = static_cast<uint32_t>(imageSize.width),
-            .height = static_cast<uint32_t>(imageSize.height)
+                .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+                .pNext = nullptr,
+                .renderPass = *renderPass,
+                .layers = 1,
+                .attachmentCount = 1,
+                .pAttachments = attachments,
+                .width = static_cast<uint32_t>(imageSize.width),
+                .height = static_cast<uint32_t>(imageSize.height)
         };
 
         fbCreateInfo.attachmentCount = (depthView == VK_NULL_HANDLE ? 1 : 2);
@@ -182,4 +192,116 @@ int VKSwapChainManager::createFrameBuffer(VKDeviceManager *deviceInfo, VkRenderP
 
     lastDisplayImage = &displayImages[0];
     return 0;
+}
+
+int VKSwapChainManager::createOffscreenFrameBuffer(VKDeviceManager *deviceInfo, VkRenderPass* renderPass,
+                                          VkImageView depthView) {
+    //创建Image
+    displayImages = make_unique<VkImage[]>(swapchainLength);
+    displayMem = make_unique<VkDeviceMemory[]>(swapchainLength);
+    //https://blog.csdn.net/qq_35312463/article/details/103916596?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522166977539016782429758588%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fblog.%2522%257D&request_id=166977539016782429758588&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~blog~first_rank_ecpm_v1~rank_v31_ecpm-19-103916596-null-null.nonecase&utm_term=vulkan%E5%A1%AB%E5%9D%91%E5%AD%A6%E4%B9%A0day&spm=1018.2226.3001.4450
+    //每一个交换链中的图像创建基本的视图
+    displayViews = make_unique<VkImageView[]>(swapchainLength);
+    //对每个交换Image创建帧缓冲
+    framebuffers = make_unique<VkFramebuffer[]>(swapchainLength);
+
+    for (int i = 0; i < swapchainLength; ++i) {
+        VkImageCreateInfo image = {};
+        image.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+        image.pNext = nullptr,
+        image.imageType = VK_IMAGE_TYPE_2D,
+        image.format = displayFormat,
+        image.extent.width = static_cast<uint32_t>(imageSize.width),
+        image.extent.height = static_cast<uint32_t>(imageSize.height),
+        image.mipLevels = 1,
+        image.arrayLayers = 1,
+        image.samples = VK_SAMPLE_COUNT_1_BIT,
+                // 此处可能有问题
+        image.tiling = VK_IMAGE_TILING_OPTIMAL,
+        image.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+
+        VkMemoryAllocateInfo mem_alloc = {
+                .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+                .pNext = nullptr,
+                .allocationSize = 0,
+                .memoryTypeIndex = 0,
+        };
+
+        VkMemoryRequirements mem_reqs;
+        CALL_VK(vkCreateImage(deviceInfo->device, &image, nullptr, &displayImages[i]))
+
+        vkGetImageMemoryRequirements(deviceInfo->device, displayImages[i], &mem_reqs);
+
+        mem_alloc.allocationSize = mem_reqs.size;
+        VK_CHECK(allocateMemoryTypeFromProperties(deviceInfo,mem_reqs.memoryTypeBits,
+                                                  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                                                  &mem_alloc.memoryTypeIndex))
+
+        CALL_VK(vkAllocateMemory(deviceInfo->device, &mem_alloc, nullptr, &displayMem[i]));
+        CALL_VK(vkBindImageMemory(deviceInfo->device, displayImages[i], displayMem[i], 0))
+
+        VkImageViewCreateInfo viewCreateInfo {
+                .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+                .pNext = nullptr,
+                .flags = 0,
+                .image = displayImages[i],
+                .viewType = VK_IMAGE_VIEW_TYPE_2D, // 2D纹理
+                .format = displayFormat,
+                //components字段允许调整颜色通道的最终的映射逻辑
+                .components = {
+                        .r = VK_COMPONENT_SWIZZLE_R,
+                        .g = VK_COMPONENT_SWIZZLE_G,
+                        .b = VK_COMPONENT_SWIZZLE_B,
+                        .a = VK_COMPONENT_SWIZZLE_A,
+                },
+                //subresourceRangle字段用于描述图像的使用目标是什么，以及可以被访问的有效区域
+                .subresourceRange = {
+                        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                        .baseMipLevel = 0,
+                        .levelCount = 1,
+                        .baseArrayLayer = 0,
+                        .layerCount = 1,
+                }
+        };
+        //创建显示窗口
+        CALL_VK(vkCreateImageView(deviceInfo->device, &viewCreateInfo, nullptr, &displayViews[i]))
+        VkImageView attachments[2] {
+                displayViews[i],
+                depthView
+        };
+        VkFramebufferCreateInfo fbCreateInfo {
+                .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+                .pNext = nullptr,
+                .renderPass = *renderPass,
+                .layers = 1,
+                .attachmentCount = 1,
+                .pAttachments = attachments,
+                .width = static_cast<uint32_t>(imageSize.width),
+                .height = static_cast<uint32_t>(imageSize.height)
+        };
+
+        fbCreateInfo.attachmentCount = (depthView == VK_NULL_HANDLE ? 1 : 2);
+        CALL_VK(vkCreateFramebuffer(deviceInfo->device, &fbCreateInfo, nullptr, &framebuffers[i]))
+    }
+
+    lastDisplayImage = &displayImages[0];
+    return 0;
+}
+
+VkResult VKSwapChainManager::allocateMemoryTypeFromProperties(VKDeviceManager *deviceInfo, uint32_t typeBits,
+                                              VkFlags requirements_mask, uint32_t *typeIndex) {
+    // Search memtypes to find first index with those properties
+    for (uint32_t i = 0; i < 32; i++) {
+        if ((typeBits & 1) == 1) {
+            // Type is available, does it match user properties?
+            if ((deviceInfo->memoryProperties.memoryTypes[i].propertyFlags &
+                 requirements_mask) == requirements_mask) {
+                *typeIndex = i;
+                return VK_SUCCESS;
+            }
+        }
+        typeBits >>= 1;
+    }
+    // No memory types matched, return failure
+    return VK_ERROR_MEMORY_MAP_FAILED;
 }
