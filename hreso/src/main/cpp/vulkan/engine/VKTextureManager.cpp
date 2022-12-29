@@ -1024,6 +1024,7 @@ void VKTextureManager::saveImage(VKDeviceManager *deviceInfo, const char* filena
     size_t imgWidth = testTexture[0].tex_width;
     size_t imgHeight = testTexture[0].tex_height;
 
+    //创建图像信息
     VkImageCreateInfo image_create_info {
             .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
             .pNext = nullptr,
@@ -1060,7 +1061,7 @@ void VKTextureManager::saveImage(VKDeviceManager *deviceInfo, const char* filena
                                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, &mem_alloc.memoryTypeIndex))
     CALL_VK(vkAllocateMemory(deviceInfo->device, &mem_alloc, nullptr, &mem))
     CALL_VK(vkBindImageMemory(deviceInfo->device, dstImage, mem, 0))
-
+    //创建命令池
     VkCommandPoolCreateInfo cmdPoolCreateInfo {
             .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
             .pNext = nullptr,
@@ -1086,6 +1087,7 @@ void VKTextureManager::saveImage(VKDeviceManager *deviceInfo, const char* filena
             .pNext = nullptr,
             .flags = 0,
             .pInheritanceInfo = nullptr};
+    //开始执行命令
     CALL_VK(vkBeginCommandBuffer(gfxCmd, &cmdBufferInfo));
 
 //    //设置原图像能够读取
@@ -1097,7 +1099,7 @@ void VKTextureManager::saveImage(VKDeviceManager *deviceInfo, const char* filena
 //    setImageLayout(gfxCmd, dstImage, VK_IMAGE_LAYOUT_UNDEFINED,
 //                   VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 //                   VK_PIPELINE_STAGE_HOST_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
-
+    //设置图像初始状态
     VkImageMemoryBarrier srcBarrier {
             .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
             .pNext = nullptr,
@@ -1109,8 +1111,10 @@ void VKTextureManager::saveImage(VKDeviceManager *deviceInfo, const char* filena
             .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
             .image = *srcImage,
     };
+    //设置图像栅栏状态
     setImageLayout(gfxCmd, srcBarrier, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
 
+    //设置图像目标状态
     VkImageMemoryBarrier dstBarrier {
             .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
             .pNext = nullptr,
@@ -1122,6 +1126,7 @@ void VKTextureManager::saveImage(VKDeviceManager *deviceInfo, const char* filena
             .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
             .image = dstImage,
     };
+    //设置图像栅栏状态
     setImageLayout(gfxCmd, dstBarrier, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
 
 
@@ -1174,8 +1179,9 @@ void VKTextureManager::saveImage(VKDeviceManager *deviceInfo, const char* filena
                        dstImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1,
                        &bltInfo);
     }
-
+    //结束命令
     CALL_VK(vkEndCommandBuffer(gfxCmd));
+    //创建命令同步
     VkFenceCreateInfo fenceInfo = {
             .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
             .pNext = nullptr,
@@ -1183,7 +1189,7 @@ void VKTextureManager::saveImage(VKDeviceManager *deviceInfo, const char* filena
     };
     VkFence fence;
     CALL_VK(vkCreateFence(deviceInfo->device, &fenceInfo, nullptr, &fence));
-
+    //提交命令，并等待同步回调
     VkSubmitInfo submitInfo = {
             .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
             .pNext = nullptr,
@@ -1207,7 +1213,7 @@ void VKTextureManager::saveImage(VKDeviceManager *deviceInfo, const char* filena
 //                   VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
 //                   VK_PIPELINE_STAGE_TRANSFER_BIT,
 //                   VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
-
+    //将阑珊从目标状态设置回初始状态
     srcBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
     srcBarrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
@@ -1231,21 +1237,29 @@ void VKTextureManager::saveImage(VKDeviceManager *deviceInfo, const char* filena
     //获取到布局的offset
     VkSubresourceLayout subresourceLayout;
     vkGetImageSubresourceLayout(deviceInfo->device, dstImage, &subresource, &subresourceLayout);
+    //一定需要等待命令执行完，再读取
     char* data;
+    //映射内存VkImage的内存才能读取到正确的图片，不然只会读取到空白
     vkMapMemory(deviceInfo->device, mem, 0, VK_WHOLE_SIZE, 0, (void**)&data);
     data += subresourceLayout.offset;
     HLOGV("start save address");
+    //通过内存中读取写入图片
     if (stbi_write_png(filename, imgWidth, imgHeight, 4, data, static_cast<int>(subresourceLayout.rowPitch))) {
         HLOGV("save address = %s success", filename);
         memset(data, 0, mem_reqs.size);
     } else {
         HLOGE("save address = %s fail", filename);
     }
+    //释放映射
     vkUnmapMemory(deviceInfo->device, mem);
+    //清除图片内存
     vkFreeMemory(deviceInfo->device, mem, nullptr);
+    //释放图片容器
     vkDestroyImage(deviceInfo->device, dstImage, nullptr);
-
+    //释放同步对象
     vkDestroyFence(deviceInfo->device, fence, nullptr);
+    //释放命令
     vkFreeCommandBuffers(deviceInfo->device, cmdPool, 1, &gfxCmd);
+    //释放命令池
     vkDestroyCommandPool(deviceInfo->device, cmdPool, nullptr);
 }

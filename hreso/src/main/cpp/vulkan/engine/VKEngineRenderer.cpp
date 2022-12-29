@@ -478,17 +478,23 @@ void VKEngineRenderer::drawOffscreenImg() {
     m_height = options->srcHeight;
 
     if (!vkDeviceInfo->initialized) {
+        //创建渲染管线
         createOffscreenRenderPass();
+        //创建帧纹理对象
         createOffscreenFrameBuffers();
+        //创建顶点参数对象
         createVertexBuffer();
+        //创建Index参数对象
         createIndexBuffer();
+        //创建Uniform参数对象
         createUniformBuffers();
+        //创建Image纹理对象
         createImageTextures();
         //创建离线渲染的image
         createOffscreenReaderPassAndFramebuffer(offscreenFormat, m_width, m_height);
-
+        //离屏的filter
         offscreenFilter->init(vkDeviceInfo->device, vkOffScreenInfo->offscreenPass.renderPass);
-
+        //顶点buffer信息
         vector<VkDescriptorBufferInfo> vecBufferInfo;
         vecBufferInfo.resize(1);
 
@@ -501,7 +507,7 @@ void VKEngineRenderer::drawOffscreenImg() {
         vecBufferInfo[0] = bufferInfo;
 
         LOGI("zhy vec buffer info size is %d",vecBufferInfo.size());
-
+        //纹理buffer信息
         vector<VkDescriptorImageInfo> vecImageInfo;
         vecImageInfo.resize(1);
         VkDescriptorImageInfo texDsts[1];
@@ -513,18 +519,20 @@ void VKEngineRenderer::drawOffscreenImg() {
         vecImageInfo[0] = texDsts[0];
 
         LOGI("zhy vec image info size is %d", vecImageInfo.size());
-
+        //设置顶点buffer和纹理buffer
         offscreenFilter->updateDescriptorSet(vecBufferInfo,vecImageInfo);
         if (options != nullptr) {
             effectFilter->setOption(options);
         }
+        //使用离屏filter的管线
         effectFilter->init(vkDeviceInfo->device, vkOffScreenInfo->offscreenPass.renderPass);
-
+        //更新纹理
         effectFilter->updateDescriptorSet(vkOffScreenInfo->offscreenPass.descriptor[0].sampler,
                                           vkOffScreenInfo->offscreenPass.descriptor[0].imageView,
                                           VK_IMAGE_LAYOUT_GENERAL);
 
 //        createOffscreenImageCommandPool();
+        //创建命令池
         createImageCommandPool();
         vkDeviceInfo->initialized = true;
     }
@@ -537,6 +545,7 @@ void VKEngineRenderer::drawOffscreenImg() {
     }
 
     if (vkDeviceInfo->initialized) {
+        //进行离屏渲染
         renderOffscreen();
     }
 //    vkTextureInfo->saveImage(vkDeviceInfo, options->getSaveAddress().c_str(), vkSwapChainInfo->lastDisplayImage);
