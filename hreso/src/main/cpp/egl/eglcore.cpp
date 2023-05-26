@@ -3,7 +3,7 @@
 
 #define LOG_TAG "EGLCore"
 #define HLOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
-#define ELOGD(...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
+#define HLOGD(...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
 
 /**
  * EGL是介于诸如OpenGL 或OpenVG的Khronos渲染API与底层本地平台窗口系统的接口。它被用于处理图形管理、表面/缓冲捆绑、渲染同步及支援使用其他Khronos API进行的高效、加速、混合模式2D和3D渲染。
@@ -32,20 +32,20 @@ void EGLCore::start(ANativeWindow* window, int width, int height) {
         HLOGE("eglInitialize failed: %d",eglGetError());
         return;
     }
-    ELOGD("eglInitialize success");
+    HLOGD("eglInitialize success");
     EGLConfig config = chooseConfig();
-    ELOGD("chooseConfig success");
+    HLOGD("chooseConfig success");
 
     mContext = createContext(mDisplay, config);
-    ELOGD("createContext success");
+    HLOGD("createContext success");
     if (window) {
         EGLint format = 0;
         if (!eglGetConfigAttrib(mDisplay,config,EGL_NATIVE_VISUAL_ID,&format)){
             HLOGE("eglGetConfigAttrib failed: %d", eglGetError());
         }
-        ELOGD("eglGetConfigAttrib success");
+        HLOGD("eglGetConfigAttrib success");
         ANativeWindow_setBuffersGeometry(window, 0, 0, format);
-        ELOGD("setBuffersGeometry success");
+        HLOGD("setBuffersGeometry success");
     }
     //创建On-Screen 渲染区域
     if (window) {
@@ -78,15 +78,15 @@ void EGLCore::start(ANativeWindow* window, int width, int height) {
         return;
     }
     if (window) {
-        ELOGD("eglCreateWindowSurface success");
+        HLOGD("eglCreateWindowSurface success");
     } else {
-        ELOGD("eglCreatePbufferSurface success");
+        HLOGD("eglCreatePbufferSurface success");
     }
 
     if (!eglMakeCurrent(mDisplay, mSurface, mSurface, mContext)) {
         HLOGE("make current error:%d",eglGetError());
     }
-    ELOGD("eglMakeCurrent success");
+    HLOGD("eglMakeCurrent success");
 }
 
 EGLConfig EGLCore::chooseConfig() {
@@ -200,7 +200,7 @@ GLboolean EGLCore::buildContext(ANativeWindow *window) {
         return GL_FALSE;
     }
 
-    ELOGD("buildContext Succeed");
+    HLOGD("buildContext Succeed");
     return GL_TRUE;
 }
 

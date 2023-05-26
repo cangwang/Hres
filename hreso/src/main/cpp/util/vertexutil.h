@@ -10,7 +10,7 @@
 #include <android/log.h>
 #include <bean/pointrect.h>
 #define LOG_TAG "VertexUtil"
-#define ELOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
+#define HLOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
 
 class VertexUtil {
 public:

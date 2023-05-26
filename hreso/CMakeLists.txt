@@ -53,6 +53,7 @@ add_library( # Sets the name of the library.
         src/main/cpp/filter/filterlistener.cpp
         src/main/cpp/filter/fbfilter.cpp
         src/main/cpp/filter/fsrfilter.cpp
+        src/main/cpp/filter/fsrupfilter.cpp
         src/main/cpp/util/shaderutil.cpp
         src/main/cpp/util/glfloatarray.cpp
         src/main/cpp/util/loadtextureutil.cpp

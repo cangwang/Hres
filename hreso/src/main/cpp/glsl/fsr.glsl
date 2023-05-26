@@ -35,6 +35,7 @@ void main() {
 	colw += col1;
 	float d_min_g = min_g;
 	float d_max_g = 1.-max_g;
+	max_g = max(0., max_g);
 //	float A;
 //	if (d_max_g < d_min_g) {
 //		A = d_max_g / max_g;
@@ -42,7 +43,7 @@ void main() {
 //		A = d_min_g / max_g;
 //	}
 	float A = step(d_min_g, d_max_g) / max_g;
-	A = sqrt(A);
+	A = sqrt(max(0., A));
 	A *= mix(-.125, -.2, 1.0);
 	vec3 col_out = (col + colw * A) / (1.+4.*A);
 	glFragColor = vec4(col_out,1);

@@ -6,7 +6,7 @@
 
 float* VertexUtil::create(int width, int height, PointRect* rect, float *array) {
     if (array == nullptr) {
-        ELOGE("array is null");
+        HLOGE("array is null");
         return array;
     }
     //x0
@@ -32,7 +32,7 @@ float* VertexUtil::create(int width, int height, PointRect* rect, float *array) 
 
 float* VertexUtil::createFlip(int width, int height, PointRect* rect, float *array) {
     if (array == nullptr) {
-        ELOGE("array is null");
+        HLOGE("array is null");
         return array;
     }
     //x1
@@ -61,7 +61,7 @@ float* VertexUtil::createFlip(int width, int height, PointRect* rect, float *arr
 float* VertexUtil::create(int width, int height, PointRect* rect, float *array,float ratio, float sizeRatio) {
 
     if (array == nullptr) {
-        ELOGE("array is null");
+        HLOGE("array is null");
         return array;
     }
     //x0
@@ -88,7 +88,7 @@ float* VertexUtil::create(int width, int height, PointRect* rect, float *array,f
 
 float* VertexUtil::create(int width, int height, PointRect* rect, float *array, float ratio) {
     if (array == nullptr) {
-        ELOGE("array is null");
+        HLOGE("array is null");
         return array;
     }
     //x0

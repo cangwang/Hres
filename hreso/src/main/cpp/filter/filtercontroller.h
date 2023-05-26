@@ -10,6 +10,7 @@
 #include <filter/simplefilter.h>
 #include <filter/fsrfilter.h>
 #include <filter/hqxfilter.h>
+#include <filter/fsrupfilter.h>
 #include <list>
 #include <egl/eglcore.h>
 #include <util/stb_image_write.h>

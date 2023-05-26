@@ -55,22 +55,26 @@ void FilterController::transformFilter(IOptions *option) {
 
     //读取textureId到option
     LoadTextureUtil::loadTextureFromOption(option);
+    string type = option->getFilterType();
     if (filterName != option->getFilterType()) {  //滤镜模式不一样
         IFilter* filter = nullptr;
-        string type = option->getFilterType();
         if (type == "simple") {
             filter = new SimpleFilter(type);
         } else if (type == "hermite" || type == "lagrange" || type == "fsr") {
             filter = new FsrFilter(type);
         } else if (type == "hqx") {
             filter = new HqxFilter(type);
+        } else if (type == "fsrup") {
+            filter = new FsrUpFilter(type);
+        } else {
+            HLOGE("has not filter %s", type.c_str());
         }
         filter->setOptions(option);
         filterList.push_front(filter);
         filterName = option->getFilterType();
     }
     if (fbFilter == nullptr) {
-        fbFilter = make_shared<FbFilter>();
+        fbFilter = make_shared<FbFilter>(type);
         fbFilter->setListener(listener);
         fbFilter->setOptions(option);
     }

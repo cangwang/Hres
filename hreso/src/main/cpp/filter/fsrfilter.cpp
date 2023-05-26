@@ -211,10 +211,10 @@ void FsrFilter::setShader(string type) {
 
                 "void main() {\n"
                 /// Normalized pixel coordinates (from 0 to 1)
-                "vec2 uv = v_TexCoordinate;\n"
+                "    vec2 uv = v_TexCoordinate;\n"
 
                 // Time varying pixel color
-                "vec3 col = texture(uTexture, uv).xyz;\n"
+                "    vec3 col = texture(uTexture, uv).xyz;\n"
 
                 // CAS algorithm
                 "    float max_g = col.y;\n"
@@ -239,16 +239,18 @@ void FsrFilter::setShader(string type) {
                 "    colw += col1;\n"
                 "    float d_min_g = min_g;\n"
                 "    float d_max_g = 1.-max_g;\n"
+                "    max_g = max(0., max_g);\n"
                 //    "    float A;\n"
                 //    "    if (d_max_g < d_min_g) {\n"
                 //    "        A = d_max_g / max_g;\n"
                 //    "    } else {\n"
                 //    "        A = d_min_g / max_g;\n"
                 //    "    }\n"
-                "    float A = step(d_min_g, d_max_g) / max_g;"
-                "    A = sqrt(A);\n"
+                "    float A = min(d_min_g, d_max_g) / max_g;"
+                "    A = sqrt(max(0., A));\n"
                 "    A *= mix(-.125, -.2, 1.0);\n"
                 "    vec3 col_out = (col + colw * A) / (1.+4.*A);\n"
+//                "    col_out = texture(uTexture, uv).xyz;"
                 "    glFragColor = vec4(col_out,1);\n"
                 "}";
     }

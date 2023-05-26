@@ -38,7 +38,7 @@ JNIEXPORT void JNICALL HRES(nativeCreateTransformer) (
         //创建window
         ANativeWindow *window = ANativeWindow_fromSurface(env, surface);
         if (window == nullptr) {
-            ELOGE("window is nullptr");
+            HLOGE("window is nullptr");
         } else {
             hresTransformer->setWindow(window);
         }

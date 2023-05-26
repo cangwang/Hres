@@ -12,7 +12,7 @@
 using namespace std;
 class FbFilter: public IFilter {
 public:
-    FbFilter();
+    FbFilter(string type);
 
     ~FbFilter();
 
@@ -55,6 +55,12 @@ private:
     //纹理位置
     GLint textureLocation;
 
+    GLint wLocation;
+    GLint hLocation;
+
+    string FSRUP_TYPE = "s";
+
+    string type;
     int surfaceWidth = 0;
     int surfaceHeight = 0;
 
@@ -68,9 +74,12 @@ private:
     FilterListener* listener;
     ThreadPool* pool;
 
+    string VERTEX_SHADER;
+    string FRAGMENT_SHADER;
+
     void initPixelBuffer();
     void destroyPixelBuffers();
-    void readBuffer();
+    void setShader(string type);
 
     bool saveImg(const string saveFileAddress,unsigned char* data,int width,int height,int type);
 };

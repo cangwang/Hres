@@ -4,36 +4,136 @@
 
 #include "fbfilter.h"
 
-FbFilter::FbFilter() {
-    initFilter();
+FbFilter::FbFilter(string type) {
+    this->type.clear();
+    this->type = type;
+    setShader(type);
 }
 
 FbFilter::~FbFilter() {
     destroyFilter();
 }
 
-void FbFilter::initFilter() {
-    char VERTEX_SHADER[] = "attribute vec4 vPosition;\n"
-                           "attribute vec4 vTexCoordinate;\n"
-                           "varying vec2 v_TexCoordinate;\n"
-                           "\n"
-                           "void main() {\n"
-                           "    v_TexCoordinate = vec2(vTexCoordinate.x, vTexCoordinate.y);\n"
-                           "    gl_Position = vPosition;\n"
-                           "}";
+void FbFilter::setShader(string type) {
+    VERTEX_SHADER.clear();
+    FRAGMENT_SHADER.clear();
 
-    char FRAGMENT_SHADER[] = "precision mediump float;\n"
-                             "uniform sampler2D uTexture;\n"
-                             "varying vec2 v_TexCoordinate;\n"
-                             "\n"
-                             "void main () {\n"
-                             "    gl_FragColor = texture2D(uTexture, v_TexCoordinate);\n"
-                             //                             "    gl_FragColor = vec4(1.0,0.2,0.5,1.0);\n"
-                             "}";
+    VERTEX_SHADER =
+            "#version 300 es\n"
+            "in vec4 vPosition;\n"
+            "in vec4 vTexCoordinate;\n"
+            "out vec2 v_TexCoordinate;\n"
+            "\n"
+            "void main() {\n"
+            "    v_TexCoordinate = vec2(vTexCoordinate.x, vTexCoordinate.y);\n"
+            "    gl_Position = vPosition;\n"
+            "}";
+
+    if (type == FSRUP_TYPE) {
+        FRAGMENT_SHADER =
+                "#version 300 es\n"
+                "precision highp float;\n"
+                "in highp vec2 v_TexCoordinate;\n"
+                "uniform float w;\n"
+                "uniform float h;\n"
+
+                "uniform sampler2D uTexture;\n"
+                "out vec4 glFragColor;\n"
+
+                "void main() {\n"
+                /// Normalized pixel coordinates (from 0 to 1)
+                "    vec2 uv = v_TexCoordinate;\n"
+
+                // Time varying pixel color
+                "    vec3 col = texture(uTexture, uv).xyz;\n"
+
+                // CAS algorithm
+                "    float max_g = col.y;\n"
+                "    float min_g = col.y;\n"
+                "    vec4 uvoff = vec4(1,0,1,-1)/vec4(w, w, h, h);\n"
+                "    vec3 colw;\n"
+                "    vec3 col1 = texture(uTexture, uv+uvoff.yw).xyz;\n"
+                "    max_g = max(max_g, col1.y);\n"
+                "    min_g = min(min_g, col1.y);\n"
+                "    colw = col1;\n"
+                "    col1 = texture(uTexture, uv+uvoff.xy).xyz;\n"
+                "    max_g = max(max_g, col1.y);\n"
+                "    min_g = min(min_g, col1.y);\n"
+                "    colw += col1;\n"
+                "    col1 = texture(uTexture, uv+uvoff.yz).xyz;\n"
+                "    max_g = max(max_g, col1.y);\n"
+                "    min_g = min(min_g, col1.y);\n"
+                "    colw += col1;\n"
+                "    col1 = texture(uTexture, uv-uvoff.xy).xyz;\n"
+                "    max_g = max(max_g, col1.y);\n"
+                "    min_g = min(min_g, col1.y);\n"
+                "    colw += col1;\n"
+                "    float d_min_g = min_g;\n"
+                "    float d_max_g = 1.-max_g;\n"
+                "    max_g = max(0., max_g);\n"
+//                    "    float A;\n"
+//                    "    if (d_max_g < d_min_g) {\n"
+//                    "        A = d_max_g / max_g;\n"
+//                    "    } else {\n"
+//                    "        A = d_min_g / max_g;\n"
+//                    "    }\n"
+                "    float A = min(d_min_g, d_max_g) / max_g;"
+                "    A = sqrt(max(0., A));\n"
+                "    A *= mix(-.125, -.2, 1.0);\n"
+                "    vec3 col_out = (col + colw * A) / (1.+4.*A);\n"
+                //                "    col_out = texture(uTexture, uv).xyz;"
+                "    glFragColor = vec4(col_out,1);\n"
+                "}";
+    } else {
+        FRAGMENT_SHADER =
+                "#version 300 es\n"
+                "precision highp float;\n"
+                "uniform sampler2D uTexture;\n"
+                "in vec2 v_TexCoordinate;\n"
+                "out vec4 glFragColor;\n"
+                "\n"
+                "void main () {\n"
+                "    glFragColor = texture(uTexture, v_TexCoordinate);\n"
+                //                             "    gl_FragColor = vec4(1.0,0.2,0.5,1.0);\n"
+                "}";
+    }
+    initFilter();
+}
+/*
+"    float max_g = col.y;\n"
+"    float min_g = col.y;\n"
+"    vec4 uvoff = vec4(1,0,1,-1)/vec4(w, w, h, h);\n"
+"    vec3 colw;\n"
+"    vec3 col1 = texture(uTexture, uv+uvoff.yw).xyz;\n"
+"    max_g = max(max_g, col1.y);\n"
+"    min_g = min(min_g, col1.y);\n"
+"    colw = col1;\n"
+"    col1 = texture(uTexture, uv+uvoff.xy).xyz;\n"
+"    max_g = max(max_g, col1.y);\n"
+"    min_g = min(min_g, col1.y);\n"
+"    colw += col1;\n"
+"    col1 = texture(uTexture, uv+uvoff.yz).xyz;\n"
+"    max_g = max(max_g, col1.y);\n"
+"    min_g = min(min_g, col1.y);\n"
+"    colw += col1;\n"
+"    col1 = texture(uTexture, uv+uvoff.xz).xyz;\n"
+"    max_g = max(max_g, col1.y);\n"
+"    min_g = min(min_g, col1.y);\n"
+"    colw += col1;\n"
+"    float d_min_g = min_g;\n"
+"    float d_max_g = 1.-max_g;\n"
+"    max_g = max(0., max_g);\n"
+*/
+
+void FbFilter::initFilter() {
     shaderProgram = ShaderUtil::createProgram(VERTEX_SHADER, FRAGMENT_SHADER);
     uTextureLocation = glGetUniformLocation(shaderProgram, "uTexture");
     positionLocation = glGetAttribLocation(shaderProgram, "vPosition");
     textureLocation = glGetAttribLocation(shaderProgram, "vTexCoordinate");
+    if (type == FSRUP_TYPE) {
+        wLocation = glGetUniformLocation(shaderProgram, "w");
+        hLocation = glGetUniformLocation(shaderProgram, "h");
+    }
 
     glGenTextures(1, &fboTextureId);
     glBindTexture(GL_TEXTURE_2D, fboTextureId);
@@ -53,6 +153,10 @@ void FbFilter::renderFrame() {
         vertexArray->setVertexAttribPointer(positionLocation);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, fboTextureId);
+        if (type == FSRUP_TYPE) {
+            glUniform1f(wLocation, surfaceWidth);
+            glUniform1f(hLocation, surfaceHeight);
+        }
         //加载纹理
         glUniform1i(uTextureLocation, 0);
         rgbaArray->setVertexAttribPointer(textureLocation);
@@ -88,13 +192,16 @@ void FbFilter::setOptions(IOptions *options) {
     if (options != nullptr) {
         this->option = options;
         glGenFramebuffers(1, &fboId);
-
         glBindFramebuffer(GL_FRAMEBUFFER, fboId);
+
         glBindTexture(GL_TEXTURE_2D, fboTextureId);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,GL_TEXTURE_2D, fboTextureId, 0);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, options->getScaleWidth(), options->getScaleHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fboTextureId, 0);
+
         if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-            ELOGE("initFrameBuffer framebuffer init fail");
+            HLOGE("initFrameBuffer framebuffer init fail");
             return;
         }
         glBindTexture(GL_TEXTURE_2D, GL_NONE);
@@ -296,7 +403,7 @@ void FbFilter::destroyPixelBuffers() {
     }
 }
 
-void FbFilter::readBuffer() {
+//void FbFilter::readBuffer() {
     //加锁
 //    std::unique_lock<std::mutex> lock(gMutex);
 //
@@ -311,7 +418,7 @@ void FbFilter::readBuffer() {
 //    checkGLError("glPixelStorei");
 //    //获取帧内字节
 //    glReadPixels(0, 0, scaleImgWidth, scaleImgHeight, GL_RGBA, GL_UNSIGNED_BYTE, saveImgData);
-}
+//}
 
 void FbFilter::setListener(FilterListener *listener) {
     this->listener = listener;
